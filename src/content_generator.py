@@ -55,7 +55,7 @@ def fetch_single_feed(feed_url: str, cutoff_time: datetime) -> List[str]:
     return articles
 
 class ContentGenerator:
-    """Fetches real-time tech and world politics RSS feeds in parallel and generates 8-story English news monologue bulletins via DeepSeek."""
+    """Fetches real-time tech and world politics RSS feeds in parallel and generates 8-story English news monologue bulletins (~7-8 minutes audio duration) via DeepSeek."""
 
     def __init__(self, api_key: str = None):
         self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY")
@@ -76,25 +76,27 @@ class ContentGenerator:
         return "\n---\n".join(all_articles[:30])
 
     def generate_script(self, raw_news: str) -> Dict[str, Any]:
-        """Generates natural news monologue script AND clean news summaries using DeepSeek API."""
-        print("🤖 Writing 8-story tech & world politics news bulletin using DeepSeek...")
+        """Generates rich educational news monologue script (~7-8 minutes, 1000-1150 words) AND clean news summaries using DeepSeek API."""
+        print("🤖 Writing detailed 8-story news bulletin (target 1000-1150 words for 7-8 min audio) using DeepSeek...")
         
         today_date = datetime.now().strftime("%B %d, %Y")
         
         if not self.api_key:
             print("⚠️ HATA: DEEPSEEK_API_KEY ortam değişkeni bulunamadı. Örnek script kullanılıyor.")
             fallback_script = (
-                f"Hello, welcome to today's news bulletin for {today_date}. Let's jump right into our top stories.\n\n"
-                f"Story 1: Artificial intelligence models are advancing rapidly in software engineering. "
-                f"Notice the key term 'accelerate' (ac-cel-er-ate), meaning to happen faster. For instance: 'AI tools accelerate software testing.'\n\n"
-                f"Story 2: Global semiconductor supply chains are expanding. "
-                f"Our key word is 'resilient' (re-sil-ient), meaning able to withstand or recover quickly from difficult conditions.\n\n"
-                f"Story 3: Climate summits achieve new accord on clean energy. Key word: 'consensus' (general agreement).\n\n"
+                f"Hello, welcome to today's daily news bulletin for {today_date}. Let's jump right into our top eight stories.\n\n"
+                f"Story 1: Artificial intelligence models are advancing rapidly across software engineering platforms worldwide. "
+                f"Developers are integrating automated code generation tools to streamline building complex enterprise applications. "
+                f"Notice our key vocabulary term: 'accelerate' (ac-cel-er-ate), which means to happen or cause to happen faster. For instance: 'New AI features accelerate development workflows.'\n\n"
+                f"Story 2: Global semiconductor supply chains are expanding production facilities across Europe and North America. "
+                f"Governments are investing heavily to secure microchip manufacturing against potential trade disruptions. "
+                f"Our featured term is 'resilient' (re-sil-ient), meaning able to withstand or recover quickly from difficult conditions. Example: 'Companies need resilient supply chains.'\n\n"
+                f"Story 3: Climate summits achieve new global consensus on renewable energy goals. Key word: 'consensus' (general agreement).\n\n"
                 f"Story 4: Robotics technology transforms industrial manufacturing. Key word: 'autonomous' (self-governing, independent).\n\n"
-                f"Story 5: Digital trade treaties updated worldwide. Key word: 'implementation' (the process of putting a decision into effect).\n\n"
+                f"Story 5: Digital trade treaties updated worldwide. Key word: 'implementation' (putting a plan into effect).\n\n"
                 f"Story 6: Quantum computing encryption shows progress. Key word: 'promising' (showing signs of future success).\n\n"
                 f"Story 7: International lunar exploration missions announced. Key word: 'collaborative' (produced by working together).\n\n"
-                f"Story 8: Cybersecurity standards adopted globally. Key word: 'comprehensive' (including all or nearly all elements).\n\n"
+                f"Story 8: Cybersecurity standards adopted globally. Key word: 'comprehensive' (including all elements).\n\n"
                 f"That wraps up today's daily news bulletin. Thank you for listening, and have a wonderful day!"
             )
             fallback_summary = (
@@ -114,7 +116,7 @@ class ContentGenerator:
             )
             return {
                 "title": f"Daily News Bulletin - {today_date}",
-                "summary": f"Single-speaker 8-story news monologue for {today_date}.",
+                "summary": f"8-story news monologue for {today_date}.",
                 "script": fallback_script,
                 "bulletin_summary": fallback_summary,
                 "date": today_date
@@ -123,30 +125,32 @@ class ContentGenerator:
         client = OpenAI(api_key=self.api_key, base_url="https://api.deepseek.com")
 
         system_prompt = f"""
-You are a professional daily news broadcaster presenting an engaging, clear English news bulletin. Today is {today_date}.
+You are a professional daily news broadcaster presenting an engaging, comprehensive English news bulletin. Today is {today_date}.
 
 YOUR MISSION:
-Create a daily spoken news bulletin based on today's news. Your output must be a valid JSON object with two keys: "script" and "bulletin_summary".
+Create a detailed, rich daily spoken news bulletin based on today's news. Your output must be a valid JSON object with two keys: "script" and "bulletin_summary".
 
-STRICT AUDIO DURATION & WORD COUNT CONSTRAINT:
-- Word count MUST be between 750 and 900 words total (never exceed 950 words) to keep audio strictly under 8 minutes.
+STRICT AUDIO DURATION & WORD COUNT TARGET (CRITICAL):
+- The "script" MUST BE BETWEEN 1000 AND 1150 WORDS TOTAL.
+- Do NOT write a short or brief summary. You MUST provide deep, rich narrative context for EACH of the 8 stories (aim for 110 to 125 words per story paragraph).
+- At standard spoken speed, 1000-1150 words produces EXACTLY 7.5 to 8.0 MINUTES of spoken audio.
 
 INTONATION & PRESENTATION RULES FOR "script":
-1. DIRECT NATURAL INTRO: Start directly and naturally with a simple greeting: "Hello, welcome to today's news bulletin for {today_date}. Let's jump right into our top stories." Do NOT make an academic/educational pitch or mention "lesson/B2 level".
+1. DIRECT NATURAL INTRO: Start directly with a simple greeting: "Hello, welcome to today's news bulletin for {today_date}. Let's jump right into our top stories."
 2. SELECTION PRIORITY: Select TOP 8 STORIES from today's provided news. Prioritize Technology, AI, Engineering, and Major Geopolitics.
-3. STORY FLOW & VOCABULARY INTEGRATION:
-   - Present each story in clear, natural English.
-   - Seamlessly highlight 1 key upper-intermediate vocabulary word per story with a quick definition and practical example sentence.
-   - Use natural broadcasting transitions ("Turning to technology...", "In world affairs...", "Next...").
-4. CONCLUSION: Wrap up naturally with a brief recap of the key terms and a simple friendly closing ("That wraps up today's bulletin. Thanks for listening and have a great day!").
+3. DETAILED STORY NARRATIVE:
+   - For EACH of the 8 stories, write a detailed paragraph (110-125 words) explaining the background, context, global impact, and developments of the news event.
+   - Seamlessly integrate 1 key vocabulary term per story, pronouncing it clearly with syllable stress, followed by its definition and an authentic real-world example sentence.
+   - Use natural broadcasting transitions between stories ("Turning to technology news...", "In international geopolitics...", "Moving on to our next report...").
+4. CONCLUSION: Conclude naturally with a brief recap of the 8 key vocabulary terms and a friendly sign-off ("That wraps up today's daily bulletin. Thank you for listening, and have a great day!").
 
 STRUCTURE FOR "bulletin_summary" (HTML for Email Body):
 - Section 1: <h3>📰 Today's News Highlights</h3> with a clean <ul> containing 8 <li> items (Bold Story Title + 2-sentence summary).
-- Section 2: <h3>📚 Key Vocabulary</h3> with a <ul> containing 8 <li> items (Bold Word + Syllable hint + Clear Definition + Contextual Example Sentence). Do NOT include "B2" labels anywhere in the text or headings.
+- Section 2: <h3>📚 Key Vocabulary</h3> with a <ul> containing 8 <li> items (Bold Word + Syllable hint + Clear Definition + Contextual Example Sentence).
 
 JSON RESPONSE SCHEMA (Strictly return JSON only):
 {{
-  "script": "spoken monologue text (750-900 words)...",
+  "script": "detailed spoken monologue text (MUST BE 1000-1150 WORDS)...",
   "bulletin_summary": "<div style='font-family: sans-serif;'>...HTML summary...</div>"
 }}
 """
