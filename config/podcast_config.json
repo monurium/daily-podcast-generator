@@ -1,0 +1,14 @@
+{
+  "title": "Daily AI & Tech Bulletin",
+  "description": "Your automated daily podcast bringing you the latest updates in AI, technology, and science.",
+  "author": "Monurium",
+  "email": "podcast@example.com",
+  "language": "en-us",
+  "category": "Technology",
+  "subcategory": "Tech News",
+  "explicit": false,
+  "cover_image_url": "https://monurium.github.io/daily-podcast-generator/cover.jpg",
+  "link": "https://monurium.github.io/daily-podcast-generator",
+  "feed_filename": "podcast.xml",
+  "output_dir": "dist"
+}
