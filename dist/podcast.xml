@@ -1,12 +1,13 @@
 <?xml version="1.0" ?>
 <rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
   <channel>
-    <title>Daily AI &amp; Tech Bulletin</title>
+    <atom:link href="https://monurium.github.io/daily-podcast-generator/podcast.xml" rel="self" type="application/rss+xml"/>
+    <title>Daily Tech &amp; World News Digest</title>
     <link>https://monurium.github.io/daily-podcast-generator</link>
     <language>en-us</language>
-    <description>Your automated daily podcast bringing you the latest updates in AI, technology, and science.</description>
+    <description>Automated daily audio news bulletin covering the latest developments in technology, AI, and global affairs.</description>
     <itunes:author>Monurium</itunes:author>
-    <itunes:summary>Your automated daily podcast bringing you the latest updates in AI, technology, and science.</itunes:summary>
+    <itunes:summary>Automated daily audio news bulletin covering the latest developments in technology, AI, and global affairs.</itunes:summary>
     <itunes:explicit>false</itunes:explicit>
     <itunes:category text="Technology">
       <itunes:category text="Tech News"/>
@@ -14,9 +15,19 @@
     <itunes:image href="https://monurium.github.io/daily-podcast-generator/cover.jpg"/>
     <image>
       <url>https://monurium.github.io/daily-podcast-generator/cover.jpg</url>
-      <title>Daily AI &amp; Tech Bulletin</title>
+      <title>Daily Tech &amp; World News Digest</title>
       <link>https://monurium.github.io/daily-podcast-generator</link>
     </image>
+    <item>
+      <title>Daily News Bulletin - August 14, 2026</title>
+      <description>8-story news monologue focusing on Technology, AI, and World Politics for August 14, 2026.</description>
+      <pubDate>Fri, 14 Aug 2026 18:31:22 GMT</pubDate>
+      <guid isPermaLink="false">ep_20260814_860afb</guid>
+      <itunes:author>Monurium</itunes:author>
+      <itunes:duration>00:03:00</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+      <enclosure url="https://monurium.github.io/daily-podcast-generator/episodes/ep_20260814_860afb.mp3" length="1181088" type="audio/mpeg"/>
+    </item>
     <item>
       <title>B2 English Tech &amp; World Bulletin (7-8 Min) - August 14, 2026</title>
       <description>Educational 8-story B2 English lesson (~7-8 minutes) focusing on Technology, AI, and World Politics for August 14, 2026.</description>
