@@ -55,7 +55,7 @@ def fetch_single_feed(feed_url: str, cutoff_time: datetime) -> List[str]:
     return articles
 
 class ContentGenerator:
-    """Fetches real-time tech and world politics RSS feeds in parallel and generates 8-story B2 English educational lessons (strictly under 8 minutes audio duration) via DeepSeek."""
+    """Fetches real-time tech and world politics RSS feeds in parallel and generates 8-story English news monologue bulletins via DeepSeek."""
 
     def __init__(self, api_key: str = None):
         self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY")
@@ -76,18 +76,17 @@ class ContentGenerator:
         return "\n---\n".join(all_articles[:30])
 
     def generate_script(self, raw_news: str) -> Dict[str, Any]:
-        """Generates educational monologue script AND clean news summaries / vocabulary list using DeepSeek API with strict under-8-minute length control."""
-        print("🤖 Writing 8-story pedagogically optimized B2 English lesson (strict max 8 min audio) using DeepSeek...")
+        """Generates natural news monologue script AND clean news summaries using DeepSeek API."""
+        print("🤖 Writing 8-story tech & world politics news bulletin using DeepSeek...")
         
         today_date = datetime.now().strftime("%B %d, %Y")
         
         if not self.api_key:
             print("⚠️ HATA: DEEPSEEK_API_KEY ortam değişkeni bulunamadı. Örnek script kullanılıyor.")
             fallback_script = (
-                f"Hello and welcome to your Daily B2 English News Lesson for {today_date}. "
-                f"I'm your host, and today we will cover eight major global developments while upgrading your upper-intermediate vocabulary.\n\n"
+                f"Hello, welcome to today's news bulletin for {today_date}. Let's jump right into our top stories.\n\n"
                 f"Story 1: Artificial intelligence models are advancing rapidly in software engineering. "
-                f"Notice our first target B2 word: 'accelerate' (ac-cel-er-ate). It means to happen or cause to happen faster. For instance: 'AI tools accelerate software testing.'\n\n"
+                f"Notice the key term 'accelerate' (ac-cel-er-ate), meaning to happen faster. For instance: 'AI tools accelerate software testing.'\n\n"
                 f"Story 2: Global semiconductor supply chains are expanding. "
                 f"Our key word is 'resilient' (re-sil-ient), meaning able to withstand or recover quickly from difficult conditions.\n\n"
                 f"Story 3: Climate summits achieve new accord on clean energy. Key word: 'consensus' (general agreement).\n\n"
@@ -96,8 +95,7 @@ class ContentGenerator:
                 f"Story 6: Quantum computing encryption shows progress. Key word: 'promising' (showing signs of future success).\n\n"
                 f"Story 7: International lunar exploration missions announced. Key word: 'collaborative' (produced by working together).\n\n"
                 f"Story 8: Cybersecurity standards adopted globally. Key word: 'comprehensive' (including all or nearly all elements).\n\n"
-                f"To review today's lesson, our 8 target words were: accelerate, resilient, consensus, autonomous, implementation, promising, collaborative, and comprehensive. "
-                f"Try using one of these words in your daily English conversation today! Happy learning!"
+                f"That wraps up today's daily news bulletin. Thank you for listening, and have a wonderful day!"
             )
             fallback_summary = (
                 "<h3>📰 Today's 8 News Highlights</h3><ul>"
@@ -109,14 +107,14 @@ class ContentGenerator:
                 "<li><b>6. Quantum Encryption</b>: Promising developments in cybersecurity.</li>"
                 "<li><b>7. Lunar Exploration</b>: Collaborative space missions announced.</li>"
                 "<li><b>8. Infrastructure Security</b>: Adoption of comprehensive cyber standards.</li></ul>"
-                "<h3>📚 B2 Vocabulary Spotlight</h3><ul>"
+                "<h3>📚 Key Vocabulary</h3><ul>"
                 "<li><b>accelerate</b> /əkˈsel.ə.reɪt/ - To happen or make something happen faster. <i>Example: Technology continues to accelerate innovation.</i></li>"
                 "<li><b>resilient</b> /rɪˈzɪl.jənt/ - Able to withstand or recover quickly from difficulty. <i>Example: Modern networks must be resilient against outages.</i></li>"
                 "</ul>"
             )
             return {
-                "title": f"B2 English Tech & World Bulletin - {today_date}",
-                "summary": f"Single-speaker 8-story educational B2 English lesson for {today_date}.",
+                "title": f"Daily News Bulletin - {today_date}",
+                "summary": f"Single-speaker 8-story news monologue for {today_date}.",
                 "script": fallback_script,
                 "bulletin_summary": fallback_summary,
                 "date": today_date
@@ -125,31 +123,30 @@ class ContentGenerator:
         client = OpenAI(api_key=self.api_key, base_url="https://api.deepseek.com")
 
         system_prompt = f"""
-You are an elite EFL/ESL Master Educator specializing in CEFR B2 (Upper-Intermediate) English acquisition and authentic listening comprehension. Today is {today_date}.
+You are a professional daily news broadcaster presenting an engaging, clear English news bulletin. Today is {today_date}.
 
-YOUR PEDAGOGICAL MISSION:
-Create a spoken English lesson based on today's news. Your output must be a valid JSON object with two keys: "script" and "bulletin_summary".
+YOUR MISSION:
+Create a daily spoken news bulletin based on today's news. Your output must be a valid JSON object with two keys: "script" and "bulletin_summary".
 
 STRICT AUDIO DURATION & WORD COUNT CONSTRAINT:
-- Word count MUST be between 750 and 900 words total.
-- UNDER NO CIRCUMSTANCES should the script exceed 950 words. This ensures the spoken audio strictly stays under 8 minutes.
+- Word count MUST be between 750 and 900 words total (never exceed 950 words) to keep audio strictly under 8 minutes.
 
-PEDAGOGICAL & CONTENT GUIDELINES:
-1. SELECTION PRIORITY: Select TOP 8 STORIES from today's provided news. Prioritize Technology, AI, Engineering, and Major Geopolitics.
-2. PEDAGOGICAL STRUCTURE FOR "script":
-   - Warm Introduction: Greet the learner warmly, state today's date ({today_date}), set the learning objective (8 news stories + 8 B2 vocabulary items).
-   - 8 News Modules (Story 1 to 8): For EACH story:
-     a) Explain the news event concisely using authentic B2-level syntax.
-     b) Explicitly highlight 1 target B2 vocabulary word. Pronounce it slowly with syllable emphasis (e.g., 're-sil-ient'), define it in clear English, and provide a short practical real-world example sentence.
-   - Pedagogical Signposting: Use clear oral transitional signals ("Moving on to our next story...", "Notice how the word X is used...").
-   - Review & Practice Call-to-Action: Briefly recap all 8 B2 words and challenge the learner to use at least one word today.
-3. STRUCTURE FOR "bulletin_summary" (HTML for Email Body):
-   - Section 1: <h3>📰 Today's 8 News Summaries</h3> with a clean <ul> containing 8 <li> items (Bold Story Title + 2-sentence summary).
-   - Section 2: <h3>📚 B2 Vocabulary Spotlight</h3> with a <ul> containing 8 <li> items (Bold Word + Syllable hint + Clear B2 Definition + Contextual Example Sentence).
+INTONATION & PRESENTATION RULES FOR "script":
+1. DIRECT NATURAL INTRO: Start directly and naturally with a simple greeting: "Hello, welcome to today's news bulletin for {today_date}. Let's jump right into our top stories." Do NOT make an academic/educational pitch or mention "lesson/B2 level".
+2. SELECTION PRIORITY: Select TOP 8 STORIES from today's provided news. Prioritize Technology, AI, Engineering, and Major Geopolitics.
+3. STORY FLOW & VOCABULARY INTEGRATION:
+   - Present each story in clear, natural English.
+   - Seamlessly highlight 1 key upper-intermediate vocabulary word per story with a quick definition and practical example sentence.
+   - Use natural broadcasting transitions ("Turning to technology...", "In world affairs...", "Next...").
+4. CONCLUSION: Wrap up naturally with a brief recap of the key terms and a simple friendly closing ("That wraps up today's bulletin. Thanks for listening and have a great day!").
+
+STRUCTURE FOR "bulletin_summary" (HTML for Email Body):
+- Section 1: <h3>📰 Today's News Highlights</h3> with a clean <ul> containing 8 <li> items (Bold Story Title + 2-sentence summary).
+- Section 2: <h3>📚 Key Vocabulary</h3> with a <ul> containing 8 <li> items (Bold Word + Syllable hint + Clear Definition + Contextual Example Sentence). Do NOT include "B2" labels anywhere in the text or headings.
 
 JSON RESPONSE SCHEMA (Strictly return JSON only):
 {{
-  "script": "spoken monologue text (750-900 words max)...",
+  "script": "spoken monologue text (750-900 words)...",
   "bulletin_summary": "<div style='font-family: sans-serif;'>...HTML summary...</div>"
 }}
 """
@@ -170,8 +167,8 @@ JSON RESPONSE SCHEMA (Strictly return JSON only):
             raw_content = re.sub(r'\s*```$', '', raw_content)
 
         result = json.loads(raw_content)
-        title = f"B2 English Tech & World Bulletin - {today_date}"
-        summary = f"Educational 8-story B2 English lesson focusing on Technology, AI, and World Politics for {today_date}."
+        title = f"Daily News Bulletin - {today_date}"
+        summary = f"8-story news monologue focusing on Technology, AI, and World Politics for {today_date}."
 
         return {
             "title": title,

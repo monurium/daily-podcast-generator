@@ -21,7 +21,7 @@ class EmailSender:
         return bool(self.smtp_user and self.smtp_password and self.email_to)
 
     def send_podcast_email(self, episode_meta: Dict[str, Any], mp3_file_path: str) -> bool:
-        """Sends an email containing news bullet points, B2 vocabulary list, and MP3 audio attachment with DYNAMIC duration."""
+        """Sends an email containing news bullet points, vocabulary list, and MP3 audio attachment with dynamic duration."""
         if not self.is_configured():
             print("ℹ️ SMTP credentials (SMTP_USER, SMTP_PASSWORD, EMAIL_TO) not set. Skipping email sending.")
             return False
@@ -30,11 +30,11 @@ class EmailSender:
 
         try:
             msg = MIMEMultipart()
-            msg["From"] = f"Daily B2 News Digest <{self.smtp_user}>"
+            msg["From"] = f"Daily News Digest <{self.smtp_user}>"
             msg["To"] = self.email_to
             msg["Subject"] = f"🎙️ {episode_meta['title']}"
 
-            # Format HTML Body with structured news summaries and DYNAMIC duration
+            # Format HTML Body with structured news summaries and dynamic duration
             duration_str = episode_meta.get('duration_formatted', '')
             duration_display = f" ({duration_str})" if duration_str else ""
             news_summary_html = episode_meta.get('bulletin_summary', episode_meta['script']).replace('\n', '<br>')
@@ -52,8 +52,8 @@ class EmailSender:
                 </div>
                 
                 <div style="background-color: #eef2f7; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center; border: 1px solid #d0d7de;">
-                  <p style="margin: 0; font-weight: bold; color: #1e3c72;">🎧 Today's MP3 Audio Lesson{duration_display} is Attached Below!</p>
-                  <p style="margin: 5px 0 0 0; font-size: 0.9em; color: #57606a;">Download or play the attached .mp3 file to practice your listening comprehension.</p>
+                  <p style="margin: 0; font-weight: bold; color: #1e3c72;">🎧 Today's MP3 Audio Bulletin{duration_display} is Attached Below!</p>
+                  <p style="margin: 5px 0 0 0; font-size: 0.9em; color: #57606a;">Download or play the attached .mp3 file to listen to today's news digest.</p>
                 </div>
               </body>
             </html>
