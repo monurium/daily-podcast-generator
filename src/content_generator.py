@@ -67,36 +67,37 @@ class ContentGenerator:
         now_dt = datetime.now(timezone.utc)
         cutoff_time = now_dt - timedelta(hours=hours_limit)
 
-        # Execute parallel HTTP requests across all 7 RSS feeds
         with ThreadPoolExecutor(max_workers=len(RSS_FEEDS)) as executor:
             future_to_url = {executor.submit(fetch_single_feed, url, cutoff_time): url for url in RSS_FEEDS}
             for future in as_completed(future_to_url):
                 all_articles.extend(future.result())
 
         print(f"✅ Found {len(all_articles)} fresh articles from the last {hours_limit} hours.")
-        # Limit to top 30 freshest articles to stay well within token limits
         return "\n---\n".join(all_articles[:30])
 
     def generate_script(self, raw_news: str) -> Dict[str, Any]:
-        """Generates educational monologue script AND clean news summaries / vocabulary list using DeepSeek API."""
-        print("🤖 Writing 8-story tech & world politics educational B2 English lesson using DeepSeek...")
+        """Generates educational monologue script AND clean news summaries / vocabulary list using DeepSeek API with pedagogical excellence."""
+        print("🤖 Writing 8-story pedagogically optimized B2 English lesson using DeepSeek...")
         
         today_date = datetime.now().strftime("%B %d, %Y")
         
         if not self.api_key:
             print("⚠️ HATA: DEEPSEEK_API_KEY ortam değişkeni bulunamadı. Örnek script kullanılıyor.")
             fallback_script = (
-                f"Hello and welcome to your Daily B2 English Digest for {today_date}.\n\n"
-                f"Today we explore eight major stories across technology, AI breakthroughs, and world affairs.\n\n"
-                f"Story 1: Artificial intelligence models are advancing rapidly in software development. Key B2 Word: 'accelerate' (to happen faster).\n\n"
-                f"Story 2: Global semiconductor supply chains are expanding in Europe and Asia. Key B2 Word: 'resilient' (able to recover quickly).\n\n"
-                f"Story 3: International climate summits have reached new consensus on clean energy. Key B2 Word: 'consensus' (general agreement).\n\n"
-                f"Story 4: Autonomous robotics technology is transforming industrial automation. Key B2 Word: 'autonomous' (independent, self-governing).\n\n"
-                f"Story 5: Major trade treaties are being updated for digital services. Key B2 Word: 'implementation' (putting a decision or plan into effect).\n\n"
-                f"Story 6: Breakthroughs in quantum computing research show promising encryption results. Key B2 Word: 'promising' (showing sign of future success).\n\n"
-                f"Story 7: International space agencies announce collaborative lunar exploration missions. Key B2 Word: 'collaborative' (produced by working together).\n\n"
-                f"Story 8: New cybersecurity frameworks are adopted across infrastructure networks. Key B2 Word: 'comprehensive' (including all or nearly all elements).\n\n"
-                f"To recap, today we learned accelerate, resilient, consensus, autonomous, implementation, promising, collaborative, and comprehensive. Keep practicing!"
+                f"Hello and welcome to your Daily B2 English News Lesson for {today_date}. "
+                f"I'm your host, and today we will cover eight major global developments while upgrading your upper-intermediate vocabulary.\n\n"
+                f"Story 1: Artificial intelligence models are advancing rapidly in software engineering. "
+                f"Notice our first target B2 word: 'accelerate' (ac-cel-er-ate). It means to happen or cause to happen faster. For instance: 'AI tools accelerate software testing.'\n\n"
+                f"Story 2: Global semiconductor supply chains are expanding. "
+                f"Our key word is 'resilient' (re-sil-ient), meaning able to withstand or recover quickly from difficult conditions.\n\n"
+                f"Story 3: Climate summits achieve new accord on clean energy. Key word: 'consensus' (general agreement).\n\n"
+                f"Story 4: Robotics technology transforms industrial manufacturing. Key word: 'autonomous' (self-governing, independent).\n\n"
+                f"Story 5: Digital trade treaties updated worldwide. Key word: 'implementation' (the process of putting a decision into effect).\n\n"
+                f"Story 6: Quantum computing encryption shows progress. Key word: 'promising' (showing signs of future success).\n\n"
+                f"Story 7: International lunar exploration missions announced. Key word: 'collaborative' (produced by working together).\n\n"
+                f"Story 8: Cybersecurity standards adopted globally. Key word: 'comprehensive' (including all or nearly all elements).\n\n"
+                f"To review today's lesson, our 8 target words were: accelerate, resilient, consensus, autonomous, implementation, promising, collaborative, and comprehensive. "
+                f"Try using one of these words in your daily English conversation today! Happy learning!"
             )
             fallback_summary = (
                 "<h3>📰 Today's 8 News Highlights</h3><ul>"
@@ -108,6 +109,10 @@ class ContentGenerator:
                 "<li><b>6. Quantum Encryption</b>: Promising developments in cybersecurity.</li>"
                 "<li><b>7. Lunar Exploration</b>: Collaborative space missions announced.</li>"
                 "<li><b>8. Infrastructure Security</b>: Adoption of comprehensive cyber standards.</li></ul>"
+                "<h3>📚 B2 Vocabulary Spotlight</h3><ul>"
+                "<li><b>accelerate</b> /əkˈsel.ə.reɪt/ - To happen or make something happen faster. <i>Example: Technology continues to accelerate innovation.</i></li>"
+                "<li><b>resilient</b> /rɪˈzɪl.jənt/ - Able to withstand or recover quickly from difficulty. <i>Example: Modern networks must be resilient against outages.</i></li>"
+                "</ul>"
             )
             return {
                 "title": f"B2 English Tech & World Bulletin (7-8 Min) - {today_date}",
@@ -120,37 +125,42 @@ class ContentGenerator:
         client = OpenAI(api_key=self.api_key, base_url="https://api.deepseek.com")
 
         system_prompt = f"""
-You are an expert, encouraging English language teacher presenting a daily news-based English lesson for B2-level learners. Today is {today_date}.
+You are an elite EFL/ESL Master Educator specializing in CEFR B2 (Upper-Intermediate) English acquisition and authentic listening comprehension. Today is {today_date}.
 
-Provide your response in valid JSON format with two top-level keys:
-- "script": The complete spoken monologue script (950-1100 words, 8 stories, 8 B2 vocabulary words explained).
-- "bulletin_summary": HTML-formatted summary listing the 8 news story titles + 2-sentence bullet point summaries, followed by a list of the 8 B2 vocabulary words with definitions.
+YOUR PEDAGOGICAL MISSION:
+Create a 7-8 minute (950-1100 words) spoken English lesson based on today's news. Your output must be a valid JSON object with two keys: "script" and "bulletin_summary".
 
-JSON RESPONSE SCHEMA:
+PEDAGOGICAL & CONTENT GUIDELINES:
+1. SELECTION PRIORITY: Select exactly TOP 8 STORIES from today's provided news. Prioritize Technology, AI, Engineering, and Major Geopolitics.
+2. PEDAGOGICAL STRUCTURE FOR "script":
+   - Warm Introduction: Greet the learner warmly, state today's date ({today_date}), set the learning objective (8 news stories + 8 B2 vocabulary items).
+   - 8 News Modules (Story 1 to 8): For EACH story:
+     a) Explain the news event clearly using authentic B2-level syntax.
+     b) Explicitly highlight 1 target B2 vocabulary word. Pronounce it slowly with syllable emphasis (e.g., 're-sil-ient'), define it in clear English, state its synonym, and provide a practical real-world example sentence.
+   - Pedagogical Signposting: Use clear oral transitional signals ("Moving on to our second story...", "Let me draw your attention to...", "In our final news item today...").
+   - Review & Practice Call-to-Action: Recap all 8 B2 words in bulleted order and challenge the learner to use at least one word today.
+3. STRUCTURE FOR "bulletin_summary" (HTML for Email Body):
+   - Section 1: <h3>📰 Today's 8 News Summaries</h3> with a clean <ul> containing 8 <li> items (Bold Story Title + 2-sentence summary).
+   - Section 2: <h3>📚 B2 Vocabulary Spotlight</h3> with a <ul> containing 8 <li> items (Bold Word + Syllable/IPA hint + Clear B2 Definition + Contextual Example Sentence).
+
+JSON RESPONSE SCHEMA (Strictly return JSON only):
 {{
-  "script": "spoken text monologue...",
-  "bulletin_summary": "HTML content with <h3>📰 Today's News Summaries</h3><ul>...</ul><h3>📚 B2 Vocabulary List</h3><ul>...</ul>"
+  "script": "spoken monologue text (950-1100 words)...",
+  "bulletin_summary": "<div style='font-family: sans-serif;'>...HTML summary...</div>"
 }}
-
-PRIORITY SELECTION & AUDIO LENGTH RULES FOR SCRIPT:
-1. TARGET LENGTH: 950 to 1100 words total (7 to 8 minutes of spoken educational audio).
-2. SELECTION PRIORITY: Select TOP 8 STORIES from today's news prioritizing Tech/AI & World Politics.
-3. SINGLE SPEAKER NARRATOR: Continuous monologue spoken by one friendly teacher.
-4. B2 VOCABULARY: 8 key words explained in detail during the script.
 """
 
         response = client.chat.completions.create(
             model="deepseek-chat",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Today's Fresh News:\n{raw_news}"}
+                {"role": "user", "content": f"Today's Fresh News Articles:\n{raw_news}"}
             ],
             response_format={"type": "json_object"},
             temperature=0.7
         )
 
         raw_content = response.choices[0].message.content.strip()
-        # Clean any markdown json wrapper codeblocks if present
         if raw_content.startswith("```"):
             raw_content = re.sub(r'^```(?:json)?\s*', '', raw_content)
             raw_content = re.sub(r'\s*```$', '', raw_content)
