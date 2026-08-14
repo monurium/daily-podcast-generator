@@ -8,6 +8,7 @@ from src.content_generator import ContentGenerator
 from src.audio_generator import AudioGenerator
 from src.rss_builder import RSSBuilder
 from src.publisher import Publisher
+from src.email_sender import EmailSender
 
 load_dotenv()
 
@@ -25,7 +26,7 @@ def run_daily_podcast_pipeline():
     output_dir = config.get("output_dir", "dist")
 
     # 2. Fetch Fresh News & Generate Script via DeepSeek
-    print("\n[Step 1/4] Fetching latest RSS news (last 24 hours)...")
+    print("\n[Step 1/5] Fetching latest RSS news (last 24 hours)...")
     content_gen = ContentGenerator()
     raw_news = content_gen.fetch_fresh_news(hours_limit=24)
 
@@ -46,12 +47,12 @@ def run_daily_podcast_pipeline():
     episode_id = f"ep_{datetime.date.today().strftime('%Y%m%d')}_{uuid.uuid4().hex[:6]}"
     temp_audio_path = os.path.join("output", "temp", f"{episode_id}.mp3")
 
-    print("\n[Step 2/4] Synthesizing MP3 audio with hosts Alex & Sam...")
+    print("\n[Step 2/5] Synthesizing MP3 audio with hosts Alex & Sam...")
     audio_gen = AudioGenerator()
     audio_meta = audio_gen.text_to_audio(script_data["script"], temp_audio_path)
 
     # 4. Publication & Manifest Sync
-    print("\n[Step 3/4] Publishing episode to distribution directory...")
+    print("\n[Step 3/5] Publishing episode to distribution directory...")
     publisher = Publisher(output_dir=output_dir)
     pub_date = datetime.datetime.now(datetime.timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
 
@@ -68,13 +69,18 @@ def run_daily_podcast_pipeline():
     all_episodes = publisher.add_episode(episode_meta, temp_audio_path, base_url)
 
     # 5. RSS XML Feed Generation for Apple Podcasts
-    print("\n[Step 4/4] Updating Apple Podcasts RSS feed (podcast.xml)...")
+    print("\n[Step 4/5] Updating Apple Podcasts RSS feed (podcast.xml)...")
     rss_builder = RSSBuilder(config=config)
     rss_path = os.path.join(output_dir, config.get("feed_filename", "podcast.xml"))
     rss_builder.build_feed(all_episodes, rss_path)
 
+    # 6. Optional Email Delivery with MP3 Attachment
+    print("\n[Step 5/5] Checking email delivery configuration...")
+    email_sender = EmailSender()
+    email_sender.send_podcast_email(episode_meta, temp_audio_path)
+
     print("\n" + "=" * 60)
-    print("🎉 SUCCESS: Daily B2 podcast episode generated and RSS feed updated!")
+    print("🎉 SUCCESS: Daily B2 podcast episode generated, RSS updated & email processed!")
     print(f"Feed path: {rss_path}")
     print(f"Feed URL: {base_url.rstrip('/')}/{config.get('feed_filename', 'podcast.xml')}")
     print("=" * 60)
