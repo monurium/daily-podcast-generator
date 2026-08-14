@@ -55,7 +55,7 @@ def fetch_single_feed(feed_url: str, cutoff_time: datetime) -> List[str]:
     return articles
 
 class ContentGenerator:
-    """Fetches real-time tech and world politics RSS feeds in parallel and generates 8-story B2 English educational lessons via DeepSeek."""
+    """Fetches real-time tech and world politics RSS feeds in parallel and generates 8-story B2 English educational lessons (strictly under 8 minutes audio duration) via DeepSeek."""
 
     def __init__(self, api_key: str = None):
         self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY")
@@ -76,8 +76,8 @@ class ContentGenerator:
         return "\n---\n".join(all_articles[:30])
 
     def generate_script(self, raw_news: str) -> Dict[str, Any]:
-        """Generates educational monologue script AND clean news summaries / vocabulary list using DeepSeek API with pedagogical excellence."""
-        print("🤖 Writing 8-story pedagogically optimized B2 English lesson using DeepSeek...")
+        """Generates educational monologue script AND clean news summaries / vocabulary list using DeepSeek API with strict under-8-minute length control."""
+        print("🤖 Writing 8-story pedagogically optimized B2 English lesson (strict max 8 min audio) using DeepSeek...")
         
         today_date = datetime.now().strftime("%B %d, %Y")
         
@@ -115,7 +115,7 @@ class ContentGenerator:
                 "</ul>"
             )
             return {
-                "title": f"B2 English Tech & World Bulletin (7-8 Min) - {today_date}",
+                "title": f"B2 English Tech & World Bulletin - {today_date}",
                 "summary": f"Single-speaker 8-story educational B2 English lesson for {today_date}.",
                 "script": fallback_script,
                 "bulletin_summary": fallback_summary,
@@ -128,24 +128,28 @@ class ContentGenerator:
 You are an elite EFL/ESL Master Educator specializing in CEFR B2 (Upper-Intermediate) English acquisition and authentic listening comprehension. Today is {today_date}.
 
 YOUR PEDAGOGICAL MISSION:
-Create a 7-8 minute (950-1100 words) spoken English lesson based on today's news. Your output must be a valid JSON object with two keys: "script" and "bulletin_summary".
+Create a spoken English lesson based on today's news. Your output must be a valid JSON object with two keys: "script" and "bulletin_summary".
+
+STRICT AUDIO DURATION & WORD COUNT CONSTRAINT:
+- Word count MUST be between 750 and 900 words total.
+- UNDER NO CIRCUMSTANCES should the script exceed 950 words. This ensures the spoken audio strictly stays under 8 minutes.
 
 PEDAGOGICAL & CONTENT GUIDELINES:
-1. SELECTION PRIORITY: Select exactly TOP 8 STORIES from today's provided news. Prioritize Technology, AI, Engineering, and Major Geopolitics.
+1. SELECTION PRIORITY: Select TOP 8 STORIES from today's provided news. Prioritize Technology, AI, Engineering, and Major Geopolitics.
 2. PEDAGOGICAL STRUCTURE FOR "script":
    - Warm Introduction: Greet the learner warmly, state today's date ({today_date}), set the learning objective (8 news stories + 8 B2 vocabulary items).
    - 8 News Modules (Story 1 to 8): For EACH story:
-     a) Explain the news event clearly using authentic B2-level syntax.
-     b) Explicitly highlight 1 target B2 vocabulary word. Pronounce it slowly with syllable emphasis (e.g., 're-sil-ient'), define it in clear English, state its synonym, and provide a practical real-world example sentence.
-   - Pedagogical Signposting: Use clear oral transitional signals ("Moving on to our second story...", "Let me draw your attention to...", "In our final news item today...").
-   - Review & Practice Call-to-Action: Recap all 8 B2 words in bulleted order and challenge the learner to use at least one word today.
+     a) Explain the news event concisely using authentic B2-level syntax.
+     b) Explicitly highlight 1 target B2 vocabulary word. Pronounce it slowly with syllable emphasis (e.g., 're-sil-ient'), define it in clear English, and provide a short practical real-world example sentence.
+   - Pedagogical Signposting: Use clear oral transitional signals ("Moving on to our next story...", "Notice how the word X is used...").
+   - Review & Practice Call-to-Action: Briefly recap all 8 B2 words and challenge the learner to use at least one word today.
 3. STRUCTURE FOR "bulletin_summary" (HTML for Email Body):
    - Section 1: <h3>📰 Today's 8 News Summaries</h3> with a clean <ul> containing 8 <li> items (Bold Story Title + 2-sentence summary).
-   - Section 2: <h3>📚 B2 Vocabulary Spotlight</h3> with a <ul> containing 8 <li> items (Bold Word + Syllable/IPA hint + Clear B2 Definition + Contextual Example Sentence).
+   - Section 2: <h3>📚 B2 Vocabulary Spotlight</h3> with a <ul> containing 8 <li> items (Bold Word + Syllable hint + Clear B2 Definition + Contextual Example Sentence).
 
 JSON RESPONSE SCHEMA (Strictly return JSON only):
 {{
-  "script": "spoken monologue text (950-1100 words)...",
+  "script": "spoken monologue text (750-900 words max)...",
   "bulletin_summary": "<div style='font-family: sans-serif;'>...HTML summary...</div>"
 }}
 """
@@ -166,8 +170,8 @@ JSON RESPONSE SCHEMA (Strictly return JSON only):
             raw_content = re.sub(r'\s*```$', '', raw_content)
 
         result = json.loads(raw_content)
-        title = f"B2 English Tech & World Bulletin (7-8 Min) - {today_date}"
-        summary = f"Educational 8-story B2 English lesson (~7-8 minutes) focusing on Technology, AI, and World Politics for {today_date}."
+        title = f"B2 English Tech & World Bulletin - {today_date}"
+        summary = f"Educational 8-story B2 English lesson focusing on Technology, AI, and World Politics for {today_date}."
 
         return {
             "title": title,
