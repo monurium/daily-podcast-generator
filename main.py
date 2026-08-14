@@ -43,11 +43,11 @@ def run_daily_podcast_pipeline():
         f.write(script_data["script"])
     print(f"📄 Script saved to: {script_file_path}")
 
-    # 3. Audio Synthesis (Multi-Host Edge-TTS)
+    # 3. Audio Synthesis (Single Narrator Educational TTS)
     episode_id = f"ep_{datetime.date.today().strftime('%Y%m%d')}_{uuid.uuid4().hex[:6]}"
     temp_audio_path = os.path.join("output", "temp", f"{episode_id}.mp3")
 
-    print("\n[Step 2/5] Synthesizing MP3 audio with hosts Alex & Sam...")
+    print("\n[Step 2/5] Synthesizing 7-8 min MP3 audio monologue...")
     audio_gen = AudioGenerator()
     audio_meta = audio_gen.text_to_audio(script_data["script"], temp_audio_path)
 
@@ -61,6 +61,7 @@ def run_daily_podcast_pipeline():
         "title": script_data["title"],
         "summary": script_data["summary"],
         "script": script_data["script"],
+        "bulletin_summary": script_data.get("bulletin_summary", script_data["summary"]),
         "pub_date": pub_date,
         "file_size": audio_meta["file_size"],
         "duration_formatted": audio_meta["duration_formatted"]
@@ -74,7 +75,7 @@ def run_daily_podcast_pipeline():
     rss_path = os.path.join(output_dir, config.get("feed_filename", "podcast.xml"))
     rss_builder.build_feed(all_episodes, rss_path)
 
-    # 6. Optional Email Delivery with MP3 Attachment
+    # 6. Optional Email Delivery with MP3 Attachment & News Bullet Summaries
     print("\n[Step 5/5] Checking email delivery configuration...")
     email_sender = EmailSender()
     email_sender.send_podcast_email(episode_meta, temp_audio_path)

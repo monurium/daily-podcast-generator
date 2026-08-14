@@ -1,5 +1,6 @@
 import os
 import time
+import json
 import feedparser
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any
@@ -56,8 +57,8 @@ class ContentGenerator:
         return "\n---\n".join(articles)
 
     def generate_script(self, raw_news: str) -> Dict[str, Any]:
-        """Generates single-narrator educational B2 monologue script covering 8 top stories (target 7-8 min audio) using DeepSeek API."""
-        print("🤖 Writing 8-story tech & world politics educational B2 English lesson (7-8 min audio) using DeepSeek...")
+        """Generates educational monologue script AND clean news summaries / vocabulary list using DeepSeek API."""
+        print("🤖 Writing 8-story tech & world politics educational B2 English lesson using DeepSeek...")
         
         today_date = datetime.now().strftime("%B %d, %Y")
         
@@ -76,10 +77,22 @@ class ContentGenerator:
                 f"Story 8: New cybersecurity frameworks are adopted across infrastructure networks. Key B2 Word: 'comprehensive' (including all or nearly all elements).\n\n"
                 f"To recap, today we learned accelerate, resilient, consensus, autonomous, implementation, promising, collaborative, and comprehensive. Keep practicing!"
             )
+            fallback_summary = (
+                "<h3>📰 Today's 8 News Highlights</h3><ul>"
+                "<li><b>1. AI Software Breakthroughs</b>: Rapid advancements in developer tools.</li>"
+                "<li><b>2. Semiconductor Expansion</b>: Supply chains growing resilient across continents.</li>"
+                "<li><b>3. Global Climate Accord</b>: International consensus on renewable energy goals.</li>"
+                "<li><b>4. Industrial Robotics</b>: Autonomous systems boosting automation.</li>"
+                "<li><b>5. Digital Trade Treaties</b>: Updated agreements for international e-commerce.</li>"
+                "<li><b>6. Quantum Encryption</b>: Promising developments in cybersecurity.</li>"
+                "<li><b>7. Lunar Exploration</b>: Collaborative space missions announced.</li>"
+                "<li><b>8. Infrastructure Security</b>: Adoption of comprehensive cyber standards.</li></ul>"
+            )
             return {
                 "title": f"B2 English Tech & World Bulletin (7-8 Min) - {today_date}",
                 "summary": f"Single-speaker 8-story educational B2 English lesson for {today_date}.",
                 "script": fallback_script,
+                "bulletin_summary": fallback_summary,
                 "date": today_date
             }
 
@@ -88,18 +101,21 @@ class ContentGenerator:
         system_prompt = f"""
 You are an expert, encouraging English language teacher presenting a daily news-based English lesson for B2-level learners. Today is {today_date}.
 
-PRIORITY SELECTION & AUDIO LENGTH RULES:
-1. TARGET LENGTH: 950 to 1100 words total (designed for approximately 7 to 8 minutes of spoken educational audio).
-2. SELECTION PRIORITY: Select exactly TOP 8 STORIES from today's provided news. Prioritize:
-   - Technology, AI breakthroughs, software, engineering, and innovation.
-   - Critical major world politics and international relations developments.
-3. SINGLE SPEAKER NARRATOR: Do NOT use dialogue tags (no "Alex:" or "Sam:"). Write as a clear, educational monologue spoken by one friendly teacher.
-4. STRUCTURE:
-   - Introduction: Warmly welcome the listener to today's 7-8 minute top tech and world news English lesson.
-   - 8 Stories (Story 1 through Story 8): For EACH story, explain the news in detailed B2 English, then highlight 1 key B2 vocabulary word used, providing its definition and a clear example sentence.
-   - Comprehensive Vocabulary Recap & Conclusion: Review all 8 B2 words learned today with an encouraging closing thought.
-5. LEVEL & STYLE: B2 English level. Clear pronunciation-friendly sentences, rich educational content.
-6. Do NOT include sound effects or markdown formatting like **bold** names.
+Provide your response in valid JSON format with two top-level keys:
+- "script": The complete spoken monologue script (950-1100 words, 8 stories, 8 B2 vocabulary words explained).
+- "bulletin_summary": HTML-formatted summary listing the 8 news story titles + 2-sentence bullet point summaries, followed by a list of the 8 B2 vocabulary words with definitions.
+
+JSON RESPONSE SCHEMA:
+{{
+  "script": "spoken text monologue...",
+  "bulletin_summary": "HTML content with <h3>📰 Today's News Summaries</h3><ul>...</ul><h3>📚 B2 Vocabulary List</h3><ul>...</ul>"
+}}
+
+PRIORITY SELECTION & AUDIO LENGTH RULES FOR SCRIPT:
+1. TARGET LENGTH: 950 to 1100 words total (7 to 8 minutes of spoken educational audio).
+2. SELECTION PRIORITY: Select TOP 8 STORIES from today's news prioritizing Tech/AI & World Politics.
+3. SINGLE SPEAKER NARRATOR: Continuous monologue spoken by one friendly teacher.
+4. B2 VOCABULARY: 8 key words explained in detail during the script.
 """
 
         response = client.chat.completions.create(
@@ -108,16 +124,18 @@ PRIORITY SELECTION & AUDIO LENGTH RULES:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"Today's Fresh News:\n{raw_news}"}
             ],
+            response_format={"type": "json_object"},
             temperature=0.7
         )
 
-        script_text = response.choices[0].message.content
+        result = json.loads(response.choices[0].message.content)
         title = f"B2 English Tech & World Bulletin (7-8 Min) - {today_date}"
         summary = f"Educational 8-story B2 English lesson (~7-8 minutes) focusing on Technology, AI, and World Politics for {today_date}."
 
         return {
             "title": title,
             "summary": summary,
-            "script": script_text,
+            "script": result.get("script", ""),
+            "bulletin_summary": result.get("bulletin_summary", result.get("script", "")),
             "date": today_date
         }

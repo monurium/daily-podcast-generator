@@ -7,7 +7,7 @@ from email import encoders
 from typing import Dict, Any
 
 class EmailSender:
-    """Sends daily podcast emails with MP3 audio attachment and HTML script body via SMTP."""
+    """Sends daily podcast emails with MP3 audio attachment and HTML news summaries in the email body."""
 
     def __init__(self):
         self.smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
@@ -21,38 +21,37 @@ class EmailSender:
         return bool(self.smtp_user and self.smtp_password and self.email_to)
 
     def send_podcast_email(self, episode_meta: Dict[str, Any], mp3_file_path: str) -> bool:
-        """Sends an email containing the B2 script and MP3 audio attachment."""
+        """Sends an email containing news bullet points, B2 vocabulary list, and MP3 audio attachment."""
         if not self.is_configured():
             print("ℹ️ SMTP credentials (SMTP_USER, SMTP_PASSWORD, EMAIL_TO) not set. Skipping email sending.")
             return False
 
-        print(f"📧 Sending daily podcast email to {self.email_to}...")
+        print(f"📧 Sending daily podcast email with news summaries to {self.email_to}...")
 
         try:
             msg = MIMEMultipart()
-            msg["From"] = f"Daily Podcast Bot <{self.smtp_user}>"
+            msg["From"] = f"Daily B2 News Digest <{self.smtp_user}>"
             msg["To"] = self.email_to
             msg["Subject"] = f"🎙️ {episode_meta['title']}"
 
-            # Format HTML Body
-            formatted_script = episode_meta['script'].replace('\n', '<br>')
+            # Format HTML Body with structured news summaries
+            news_summary_html = episode_meta.get('bulletin_summary', episode_meta['script']).replace('\n', '<br>')
             html_body = f"""
             <html>
-              <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                <h2 style="color: #2c3e50;">🎙️ {episode_meta['title']}</h2>
-                <p><strong>Published Date:</strong> {episode_meta['pub_date']}</p>
-                <p><strong>Duration:</strong> {episode_meta['duration_formatted']}</p>
-                <hr style="border: 0; border-top: 1px solid #eee;">
-                
-                <h3 style="color: #27ae60;">📝 B2 Dialogue Script</h3>
-                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;">
-                  {formatted_script}
+              <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #2c3e50; max-width: 650px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                  <h1 style="margin: 0; font-size: 24px;">🎙️ {episode_meta['title']}</h1>
+                  <p style="margin: 5px 0 0 0; opacity: 0.9;"><strong>Date:</strong> {episode_meta['pub_date']} | <strong>Audio Duration:</strong> {episode_meta['duration_formatted']}</p>
                 </div>
                 
-                <hr style="border: 0; border-top: 1px solid #eee;">
-                <p style="font-size: 0.9em; color: #7f8c8d;">
-                  📎 Today's MP3 podcast episode is attached to this email. Have a great day!
-                </p>
+                <div style="background-color: #ffffff; padding: 20px; border-radius: 10px; border: 1px solid #e1e8ed; margin-top: 20px;">
+                  {news_summary_html}
+                </div>
+                
+                <div style="background-color: #eef2f7; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center; border: 1px solid #d0d7de;">
+                  <p style="margin: 0; font-weight: bold; color: #1e3c72;">🎧 Today's 7-8 Minute MP3 Audio Lesson is Attached Below!</p>
+                  <p style="margin: 5px 0 0 0; font-size: 0.9em; color: #57606a;">Download or play the attached .mp3 file to practice your listening comprehension.</p>
+                </div>
               </body>
             </html>
             """
@@ -77,7 +76,7 @@ class EmailSender:
             server.sendmail(self.smtp_user, self.email_to, msg.as_string())
             server.quit()
 
-            print("✅ Email with MP3 attachment sent successfully!")
+            print("✅ Email with news summaries & MP3 attachment sent successfully!")
             return True
 
         except Exception as e:
