@@ -48,14 +48,13 @@ class AudioGenerator:
         self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
     def _generate_gemini_audio(self, script_text: str, output_path: str) -> bool:
-        """Synthesizes high-realism native audio using Google AI Studio gemini-2.5-flash-preview-tts."""
+        """Synthesizes high-realism lively native audio using Google AI Studio gemini-2.5-flash-preview-tts with Aoede voice."""
         if not self.gemini_api_key:
             print("⚠️ No GEMINI_API_KEY found in environment variables.")
             return False
 
-        print("✨ Attempting high-realism native audio generation via Google AI Studio (gemini-2.5-flash-preview-tts)...")
+        print("✨ Attempting lively native audio generation via Google AI Studio (Aoede voice)...")
         
-        # Proven working Google AI Studio TTS models
         candidate_models = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"]
         
         try:
@@ -64,18 +63,21 @@ class AudioGenerator:
 
             client = genai.Client(api_key=self.gemini_api_key)
 
+            # Performance prompt for lively, engaging, easy-to-follow delivery
             prompt = (
-                "You are an expert daily news podcast narrator. Read the following news bulletin script with a calm, friendly, clear, "
-                "and engaging professional news anchor voice. Do not add commentary or background noise, just narrate the script naturally:\n\n"
+                "You are an enthusiastic, clear, lively, and articulate daily news podcast host. "
+                "Narrate the following news script with clear vocal dynamics, engaging rhythm, natural pauses after sentences, "
+                "and a warm, energetic presentation style so listeners can follow effortlessly:\n\n"
                 f"{script_text}"
             )
 
+            # Aoede: Lively, clear, engaging voice
             config = types.GenerateContentConfig(
                 response_modalities=["AUDIO"],
                 speech_config=types.SpeechConfig(
                     voice_config=types.VoiceConfig(
                         prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                            voice_name="Puck"
+                            voice_name="Aoede"
                         )
                     )
                 )
@@ -83,7 +85,7 @@ class AudioGenerator:
 
             for model_name in candidate_models:
                 try:
-                    print(f"🎙️ Generating native speech with Google AI Studio model: '{model_name}'...")
+                    print(f"🎙️ Generating lively speech with Google AI Studio model '{model_name}' (voice: Aoede)...")
                     response = client.models.generate_content(
                         model=model_name,
                         contents=prompt,
@@ -101,7 +103,8 @@ class AudioGenerator:
                                     f.write(wav_data)
                                 
                                 file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
-                                print(f"🎉 SUCCESS! Google AI Studio Gemini audio generated via model '{model_name}': {output_path} ({file_size_mb:.2f} MB)")
+                                duration_sec = int(len(pcm_data) / 48000)
+                                print(f"🎉 SUCCESS! Google AI Studio Gemini audio generated via model '{model_name}': {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
                                 return True
                 except Exception as model_err:
                     print(f"⚠️ Model '{model_name}' attempt failed: {model_err}")
@@ -194,8 +197,14 @@ class AudioGenerator:
             asyncio.run(self.build_audio_monologue_edge(script_text, output_path))
 
         file_size = os.path.getsize(output_path) if os.path.exists(output_path) else 0
-        words = len(script_text.split())
-        duration_seconds = max(30, int((words / 130.0) * 60))
+        
+        # Accurately compute real audio duration from generated file size
+        # 24kHz 16-bit mono WAV = 48,000 bytes/sec
+        if audio_created and file_size > 44:
+            duration_seconds = max(30, int((file_size - 44) / 48000))
+        else:
+            words = len(script_text.split())
+            duration_seconds = max(30, int((words / 130.0) * 60))
 
         return {
             "file_path": output_path,
