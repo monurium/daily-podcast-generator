@@ -29,9 +29,7 @@ class ContentGenerator:
 
     def fetch_fresh_news(self, hours_limit: int = 24) -> str:
         """Collects fresh news entries published within the last `hours_limit` hours."""
-        now = datetime.datetime.now(datetime.timezone.utc)
         fresh_articles: List[str] = []
-
         print(f"📡 Scanning {len(self.rss_feeds)} RSS news feeds for fresh articles (last {hours_limit}h)...")
 
         for feed_url in self.rss_feeds:
@@ -40,7 +38,6 @@ class ContentGenerator:
                 for entry in parsed.entries[:5]:
                     title = entry.get("title", "").strip()
                     summary = entry.get("summary", "").strip()
-                    
                     if title:
                         clean_item = f"• Title: {title}\n  Summary: {summary[:250]}"
                         fresh_articles.append(clean_item)
@@ -50,11 +47,10 @@ class ContentGenerator:
         if not fresh_articles:
             return ""
 
-        selected_articles = fresh_articles[:15]
-        return "\n\n".join(selected_articles)
+        return "\n\n".join(fresh_articles[:15])
 
     def generate_script(self, raw_news_context: str) -> Dict[str, Any]:
-        """Generates a lively, engaging B2 English educational news script targeting 1400-1500 words for an exact 7.5-8 min audio duration."""
+        """Generates a lively B2 English educational news script targeting 1400-1500 words for an exact 7.5-8 min audio duration."""
         print("🤖 Prompting DeepSeek-V3 for a 1400-1500 word lively B2 English news bulletin...")
 
         system_prompt = (
@@ -89,13 +85,11 @@ class ContentGenerator:
         lines = full_content.split("\n")
         title = f"Daily News Digest - {datetime.date.today().strftime('%B %d, %Y')}"
         
-        # Extract title if present
         for line in lines[:5]:
             if line.lower().startswith("title:") or line.lower().startswith("# title:"):
                 title = line.split(":", 1)[1].strip().replace("#", "").strip()
                 break
 
-        # Generate bulletin summary HTML for email
         summary_bulletin = self._format_bulletin_summary(full_content)
 
         return {

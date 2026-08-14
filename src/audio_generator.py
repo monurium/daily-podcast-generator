@@ -7,7 +7,7 @@ from typing import Dict, Any, List
 DEFAULT_EDGE_VOICE = "en-US-AndrewNeural"
 
 def raw_pcm_to_wav_bytes(pcm_bytes: bytes, sample_rate: int = 24000, num_channels: int = 1, bits_per_sample: int = 16) -> bytes:
-    """Wraps raw PCM audio bytes from Google AI Studio into a standard, fully-playable WAV format with RIFF header."""
+    """Wraps raw 24kHz 16-bit PCM audio bytes from Google AI Studio into a standard, fully-playable RIFF WAV format."""
     if pcm_bytes.startswith(b'RIFF'):
         return pcm_bytes
         
@@ -35,7 +35,7 @@ def raw_pcm_to_wav_bytes(pcm_bytes: bytes, sample_rate: int = 24000, num_channel
     return header + pcm_bytes
 
 def generate_silent_mp3_bytes(duration_ms: int = 600) -> bytes:
-    """Generates a clean silent MP3 frame buffer of specified millisecond duration."""
+    """Generates a clean silent MP3 frame buffer of specified millisecond duration for Edge-TTS backup."""
     num_frames = max(1, int(duration_ms / 100))
     silent_frame = b'\xff\xfb\x90\xc4' + b'\x00' * 413
     return silent_frame * num_frames
@@ -50,11 +50,10 @@ class AudioGenerator:
     def _generate_gemini_audio(self, script_text: str, output_path: str) -> bool:
         """Synthesizes high-realism lively native audio using Google AI Studio gemini-2.5-flash-preview-tts with Aoede voice."""
         if not self.gemini_api_key:
-            print("⚠️ No GEMINI_API_KEY found in environment variables.")
+            print("ℹ️ No GEMINI_API_KEY set. Using Edge-TTS backup engine.")
             return False
 
-        print("✨ Attempting lively native audio generation via Google AI Studio (Aoede voice)...")
-        
+        print("✨ Synthesizing lively native audio via Google AI Studio (Voice: Aoede)...")
         candidate_models = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"]
         
         try:
@@ -63,7 +62,6 @@ class AudioGenerator:
 
             client = genai.Client(api_key=self.gemini_api_key)
 
-            # Performance prompt for lively, engaging, easy-to-follow delivery
             prompt = (
                 "You are an enthusiastic, clear, lively, and articulate daily news podcast host. "
                 "Narrate the following news script with clear vocal dynamics, engaging rhythm, natural pauses after sentences, "
@@ -71,7 +69,6 @@ class AudioGenerator:
                 f"{script_text}"
             )
 
-            # Aoede: Lively, clear, engaging voice
             config = types.GenerateContentConfig(
                 response_modalities=["AUDIO"],
                 speech_config=types.SpeechConfig(
@@ -85,7 +82,6 @@ class AudioGenerator:
 
             for model_name in candidate_models:
                 try:
-                    print(f"🎙️ Generating lively speech with Google AI Studio model '{model_name}' (voice: Aoede)...")
                     response = client.models.generate_content(
                         model=model_name,
                         contents=prompt,
@@ -104,16 +100,16 @@ class AudioGenerator:
                                 
                                 file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
                                 duration_sec = int(len(pcm_data) / 48000)
-                                print(f"🎉 SUCCESS! Google AI Studio Gemini audio generated via model '{model_name}': {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
+                                print(f"🎉 Google AI Studio audio generated successfully via model '{model_name}': {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
                                 return True
                 except Exception as model_err:
                     print(f"⚠️ Model '{model_name}' attempt failed: {model_err}")
 
-            print("⚠️ All Google AI Studio candidate models failed. Falling back to Edge-TTS backup.")
+            print("⚠️ Google AI Studio models unavailable. Falling back to Edge-TTS backup.")
             return False
 
         except Exception as e:
-            print(f"⚠️ Google AI Studio audio generation encountered an issue ({e}). Falling back to Edge-TTS backup.")
+            print(f"⚠️ Google AI Studio error ({e}). Falling back to Edge-TTS backup.")
             return False
 
     async def _synthesize_sentence_edge(self, index: int, text: str, output_dir: str) -> str:
@@ -125,8 +121,7 @@ class AudioGenerator:
             communicate = edge_tts.Communicate(text, self.edge_voice, rate="-3%", pitch="+0Hz")
             await communicate.save(temp_file)
             return temp_file
-        except Exception as e:
-            print(f"⚠️ Warning: Could not synthesize sentence chunk '{text[:30]}...': {e}")
+        except Exception:
             return ""
 
     async def build_audio_monologue_edge(self, script_text: str, output_mp3: str) -> str:
@@ -156,14 +151,12 @@ class AudioGenerator:
         if not all_sentence_tasks:
             raise ValueError("Script text contains no valid non-empty sentences for audio synthesis.")
 
-        print(f"⚡ Synthesizing {len(all_sentence_tasks)} valid sentence chunks via Edge-TTS backup...")
         temp_files = await asyncio.gather(*all_sentence_tasks)
 
         short_pause_bytes = generate_silent_mp3_bytes(650)
         long_pause_bytes = generate_silent_mp3_bytes(1400)
 
         try:
-            print(f"🎛️ Concatenating sentence audio segments into {output_mp3}...")
             with open(output_mp3, 'wb') as outfile:
                 for idx, fname in enumerate(temp_files):
                     if fname and os.path.exists(fname):
@@ -198,8 +191,6 @@ class AudioGenerator:
 
         file_size = os.path.getsize(output_path) if os.path.exists(output_path) else 0
         
-        # Accurately compute real audio duration from generated file size
-        # 24kHz 16-bit mono WAV = 48,000 bytes/sec
         if audio_created and file_size > 44:
             duration_seconds = max(30, int((file_size - 44) / 48000))
         else:
