@@ -3,7 +3,6 @@ import re
 import asyncio
 from typing import Dict, Any, List
 
-# Default Edge-TTS backup narrator voice
 DEFAULT_EDGE_VOICE = "en-US-AndrewNeural"
 
 def generate_silent_mp3_bytes(duration_ms: int = 600) -> bytes:
@@ -37,7 +36,6 @@ class AudioGenerator:
                 f"{script_text}"
             )
 
-            # Request direct audio output from Gemini 2.0 Flash
             response = client.models.generate_content(
                 model="gemini-2.0-flash",
                 contents=prompt,
@@ -46,7 +44,6 @@ class AudioGenerator:
                 )
             )
 
-            # Write audio bytes to output file
             if response.candidates and response.candidates[0].content.parts:
                 for part in response.candidates[0].content.parts:
                     if hasattr(part, "inline_data") and part.inline_data:
@@ -64,13 +61,17 @@ class AudioGenerator:
             return False
 
     async def _synthesize_sentence_edge(self, index: int, text: str, output_dir: str) -> str:
-        """Synthesizes a single sentence with Edge-TTS."""
+        """Synthesizes a single sentence with Edge-TTS, safely handling exceptions per chunk."""
         import edge_tts
 
         temp_file = os.path.join(output_dir, f"part_{index:04d}.mp3")
-        communicate = edge_tts.Communicate(text, self.edge_voice, rate="-3%", pitch="+0Hz")
-        await communicate.save(temp_file)
-        return temp_file
+        try:
+            communicate = edge_tts.Communicate(text, self.edge_voice, rate="-3%", pitch="+0Hz")
+            await communicate.save(temp_file)
+            return temp_file
+        except Exception as e:
+            print(f"⚠️ Warning: Could not synthesize sentence chunk '{text[:30]}...': {e}")
+            return ""
 
     async def build_audio_monologue_edge(self, script_text: str, output_mp3: str) -> str:
         """Fallback Edge-TTS audio generator with sentence-by-sentence pitch contours and silence breaks."""
@@ -89,7 +90,9 @@ class AudioGenerator:
             sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', clean_para) if s.strip()]
             
             for s_idx, sentence in enumerate(sentences):
-                if len(sentence) > 3:
+                # Filter out tiny strings or pure punctuation (must have at least 2 alphanumeric chars)
+                alphanumeric_chars = re.sub(r'[^a-zA-Z0-9]', '', sentence)
+                if len(alphanumeric_chars) >= 2:
                     is_last_in_para = (s_idx == len(sentences) - 1)
                     sentence_map.append((global_idx, is_last_in_para))
                     all_sentence_tasks.append(self._synthesize_sentence_edge(global_idx, sentence, base_dir))
@@ -98,7 +101,7 @@ class AudioGenerator:
         if not all_sentence_tasks:
             raise ValueError("Script text contains no valid non-empty sentences for audio synthesis.")
 
-        print(f"⚡ Synthesizing {len(all_sentence_tasks)} sentence chunks via Edge-TTS backup...")
+        print(f"⚡ Synthesizing {len(all_sentence_tasks)} valid sentence chunks via Edge-TTS backup...")
         temp_files = await asyncio.gather(*all_sentence_tasks)
 
         short_pause_bytes = generate_silent_mp3_bytes(650)
@@ -108,7 +111,7 @@ class AudioGenerator:
             print(f"🎛️ Concatenating sentence audio segments into {output_mp3}...")
             with open(output_mp3, 'wb') as outfile:
                 for idx, fname in enumerate(temp_files):
-                    if os.path.exists(fname):
+                    if fname and os.path.exists(fname):
                         with open(fname, 'rb') as infile:
                             outfile.write(infile.read())
                         
@@ -119,7 +122,7 @@ class AudioGenerator:
                             outfile.write(short_pause_bytes)
         finally:
             for fname in temp_files:
-                if os.path.exists(fname):
+                if fname and os.path.exists(fname):
                     try:
                         os.remove(fname)
                     except OSError:
@@ -132,11 +135,9 @@ class AudioGenerator:
         """Dual-engine runner: tries Google AI Studio first, falls back to Edge-TTS."""
         audio_created = False
 
-        # 1. Primary: Try Google AI Studio Gemini 2.0 Audio if API key is set
         if self.gemini_api_key:
             audio_created = self._generate_gemini_audio(script_text, output_path)
 
-        # 2. Backup: Fallback to Edge-TTS if Gemini is not configured or fails
         if not audio_created:
             asyncio.run(self.build_audio_monologue_edge(script_text, output_path))
 
