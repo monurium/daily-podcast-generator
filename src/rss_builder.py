@@ -1,5 +1,4 @@
 import os
-import re
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 from datetime import datetime, timezone
@@ -34,10 +33,10 @@ class RSSBuilder:
         })
 
         # Basic Channel Metadata
-        ET.SubElement(channel, "title").text = self.config.get("title", "Daily B2 Podcast")
+        ET.SubElement(channel, "title").text = self.config.get("title", "Daily Podcast Digest")
         ET.SubElement(channel, "link").text = base_url
         ET.SubElement(channel, "language").text = self.config.get("language", "en-us")
-        ET.SubElement(channel, "description").text = self.config.get("description", "Daily automated B2 English podcast")
+        ET.SubElement(channel, "description").text = self.config.get("description", "Daily automated audio news bulletin")
 
         # iTunes Specific Channel Metadata
         ET.SubElement(channel, "itunes:author").text = self.config.get("author", "Monurium")
@@ -54,7 +53,7 @@ class RSSBuilder:
             ET.SubElement(channel, "itunes:image", {"href": self.config["cover_image_url"]})
             image_elem = ET.SubElement(channel, "image")
             ET.SubElement(image_elem, "url").text = self.config["cover_image_url"]
-            ET.SubElement(image_elem, "title").text = self.config.get("title", "Daily B2 Podcast")
+            ET.SubElement(image_elem, "title").text = self.config.get("title", "Daily Podcast Digest")
             ET.SubElement(image_elem, "link").text = base_url
 
         # Add Episode Items
@@ -67,7 +66,7 @@ class RSSBuilder:
 
             # iTunes Item attributes
             ET.SubElement(item, "itunes:author").text = self.config.get("author", "Monurium")
-            ET.SubElement(item, "itunes:duration").text = str(ep.get("duration_formatted", "00:07:30"))
+            ET.SubElement(item, "itunes:duration").text = str(ep.get("duration_formatted", "00:06:00"))
             ET.SubElement(item, "itunes:explicit").text = "false"
 
             # Enclosure tag (Audio file download link for Apple Podcasts)
