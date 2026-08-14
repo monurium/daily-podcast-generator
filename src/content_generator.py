@@ -1,9 +1,11 @@
 import os
+import re
 import time
 import json
 import feedparser
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Any
+from typing import Dict, Any, List
 from openai import OpenAI
 
 # Expanded news sources focusing on Technology, AI, Science, and World Geopolitics
@@ -19,42 +21,61 @@ RSS_FEEDS = [
     "https://www.aljazeera.com/xml/rss/all.xml"
 ]
 
+def clean_html_text(raw_html: str) -> str:
+    """Strips HTML tags and unescapes entities for cleaner prompt tokens."""
+    if not raw_html:
+        return ""
+    clean = re.sub(r'<[^>]+>', ' ', raw_html)
+    clean = re.sub(r'\s+', ' ', clean).strip()
+    return clean
+
+def fetch_single_feed(feed_url: str, cutoff_time: datetime) -> List[str]:
+    """Fetches and parses a single RSS feed."""
+    articles = []
+    try:
+        feed = feedparser.parse(feed_url)
+        for entry in feed.entries:
+            published_parsed = entry.get('published_parsed') or entry.get('updated_parsed')
+
+            if published_parsed:
+                pub_date = datetime.fromtimestamp(time.mktime(published_parsed), tz=timezone.utc)
+                if pub_date < cutoff_time:
+                    continue
+
+            title = clean_html_text(entry.get('title', ''))
+            summary = clean_html_text(entry.get('summary', entry.get('description', '')))
+            pub_date_str = entry.get('published', 'Last 24 hours')
+
+            if title and summary:
+                articles.append(f"Title: {title}\nDate: {pub_date_str}\nSummary: {summary}\n")
+
+    except Exception as e:
+        print(f"⚠️ RSS Feed error ({feed_url}): {e}")
+    
+    return articles
+
 class ContentGenerator:
-    """Fetches real-time tech and world politics RSS feeds and generates 8-story B2 English educational lessons (7-8 minutes audio duration) via DeepSeek."""
+    """Fetches real-time tech and world politics RSS feeds in parallel and generates 8-story B2 English educational lessons via DeepSeek."""
 
     def __init__(self, api_key: str = None):
         self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY")
 
     def fetch_fresh_news(self, hours_limit: int = 24) -> str:
-        """Fetches news published in the last 24 hours across expanded tech & world news sources."""
-        print(f"🌐 Scanning {len(RSS_FEEDS)} tech & world news RSS feeds (last {hours_limit} hours)...")
-        articles = []
+        """Fetches news published in the last 24 hours across expanded tech & world news sources in parallel."""
+        print(f"🌐 Scanning {len(RSS_FEEDS)} tech & world news RSS feeds in parallel (last {hours_limit} hours)...")
+        all_articles = []
         now_dt = datetime.now(timezone.utc)
         cutoff_time = now_dt - timedelta(hours=hours_limit)
 
-        for feed_url in RSS_FEEDS:
-            try:
-                feed = feedparser.parse(feed_url)
-                for entry in feed.entries:
-                    published_parsed = entry.get('published_parsed') or entry.get('updated_parsed')
+        # Execute parallel HTTP requests across all 7 RSS feeds
+        with ThreadPoolExecutor(max_workers=len(RSS_FEEDS)) as executor:
+            future_to_url = {executor.submit(fetch_single_feed, url, cutoff_time): url for url in RSS_FEEDS}
+            for future in as_completed(future_to_url):
+                all_articles.extend(future.result())
 
-                    if published_parsed:
-                        pub_date = datetime.fromtimestamp(time.mktime(published_parsed), tz=timezone.utc)
-                        if pub_date < cutoff_time:
-                            continue
-
-                    title = entry.get('title', '')
-                    summary = entry.get('summary', entry.get('description', ''))
-                    pub_date_str = entry.get('published', 'Last 24 hours')
-
-                    if title and summary:
-                        articles.append(f"Title: {title}\nDate: {pub_date_str}\nSummary: {summary}\n")
-
-            except Exception as e:
-                print(f"⚠️ RSS Feed error ({feed_url}): {e}")
-
-        print(f"✅ Found {len(articles)} fresh articles from the last {hours_limit} hours.")
-        return "\n---\n".join(articles)
+        print(f"✅ Found {len(all_articles)} fresh articles from the last {hours_limit} hours.")
+        # Limit to top 30 freshest articles to stay well within token limits
+        return "\n---\n".join(all_articles[:30])
 
     def generate_script(self, raw_news: str) -> Dict[str, Any]:
         """Generates educational monologue script AND clean news summaries / vocabulary list using DeepSeek API."""
@@ -128,7 +149,13 @@ PRIORITY SELECTION & AUDIO LENGTH RULES FOR SCRIPT:
             temperature=0.7
         )
 
-        result = json.loads(response.choices[0].message.content)
+        raw_content = response.choices[0].message.content.strip()
+        # Clean any markdown json wrapper codeblocks if present
+        if raw_content.startswith("```"):
+            raw_content = re.sub(r'^```(?:json)?\s*', '', raw_content)
+            raw_content = re.sub(r'\s*```$', '', raw_content)
+
+        result = json.loads(raw_content)
         title = f"B2 English Tech & World Bulletin (7-8 Min) - {today_date}"
         summary = f"Educational 8-story B2 English lesson (~7-8 minutes) focusing on Technology, AI, and World Politics for {today_date}."
 

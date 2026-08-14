@@ -3,8 +3,10 @@ import shutil
 import json
 from typing import Dict, Any, List
 
+MAX_MANIFEST_ITEMS = 100  # Keep latest 100 episodes in manifest to prevent bloat
+
 class Publisher:
-    """Manages episode storage, manifest persistence, and web hosting directory output."""
+    """Manages episode storage, manifest persistence, deduplication, and web hosting directory output."""
 
     def __init__(self, output_dir: str = "dist"):
         self.output_dir = output_dir
@@ -27,7 +29,7 @@ class Publisher:
             json.dump(episodes, f, indent=2, ensure_ascii=False)
 
     def add_episode(self, episode_meta: Dict[str, Any], temp_audio_path: str, base_url: str) -> List[Dict[str, Any]]:
-        """Copies audio to output folder, computes public URL, and updates episode registry."""
+        """Copies audio to output folder, computes public URL, deduplicates, and updates episode registry."""
         episodes = self.load_manifest()
 
         # Filename based on GUID / slug
@@ -51,7 +53,15 @@ class Publisher:
             "duration_formatted": episode_meta["duration_formatted"]
         }
 
+        # Deduplicate: Remove existing entry with same guid if re-run
+        episodes = [ep for ep in episodes if ep.get("guid") != episode_meta["id"]]
+
         # Prepend latest episode to the list
         episodes.insert(0, new_entry)
+
+        # Trim manifest history to MAX_MANIFEST_ITEMS
+        if len(episodes) > MAX_MANIFEST_ITEMS:
+            episodes = episodes[:MAX_MANIFEST_ITEMS]
+
         self.save_manifest(episodes)
         return episodes

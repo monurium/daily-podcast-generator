@@ -7,7 +7,7 @@ from email import encoders
 from typing import Dict, Any
 
 class EmailSender:
-    """Sends daily podcast emails with MP3 audio attachment and HTML news summaries in the email body."""
+    """Sends daily podcast emails with MP3 audio attachment and HTML news summaries using safe SMTP context management."""
 
     def __init__(self):
         self.smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
@@ -69,12 +69,11 @@ class EmailSender:
             else:
                 print(f"⚠️ Warning: Attachment MP3 not found at {mp3_file_path}")
 
-            # Send Email via TLS
-            server = smtplib.SMTP(self.smtp_server, self.smtp_port)
-            server.starttls()
-            server.login(self.smtp_user, self.smtp_password)
-            server.sendmail(self.smtp_user, self.email_to, msg.as_string())
-            server.quit()
+            # Send Email via TLS using context manager with 30s timeout
+            with smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=30) as server:
+                server.starttls()
+                server.login(self.smtp_user, self.smtp_password)
+                server.sendmail(self.smtp_user, self.email_to, msg.as_string())
 
             print("✅ Email with news summaries & MP3 attachment sent successfully!")
             return True

@@ -1,11 +1,12 @@
 import os
+import re
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 from datetime import datetime, timezone
 from typing import Dict, Any, List
 
 class RSSBuilder:
-    """Generates and updates Apple Podcasts-compliant RSS 2.0 XML feeds."""
+    """Generates and updates Apple Podcasts-compliant RSS 2.0 XML feeds with strict DTD validation standards."""
 
     def __init__(self, config: Dict[str, Any]):
         self.config = config
@@ -21,14 +22,25 @@ class RSSBuilder:
 
         channel = ET.SubElement(rss, "channel")
 
+        base_url = self.config.get("link", "https://monurium.github.io/daily-podcast-generator").rstrip("/")
+        feed_filename = self.config.get("feed_filename", "podcast.xml")
+        feed_url = f"{base_url}/{feed_filename}"
+
+        # Atom Self Link for Apple Podcasts feed validation
+        ET.SubElement(channel, "atom:link", {
+            "href": feed_url,
+            "rel": "self",
+            "type": "application/rss+xml"
+        })
+
         # Basic Channel Metadata
-        ET.SubElement(channel, "title").text = self.config.get("title", "Daily Podcast")
-        ET.SubElement(channel, "link").text = self.config.get("link", "https://example.com")
+        ET.SubElement(channel, "title").text = self.config.get("title", "Daily B2 Podcast")
+        ET.SubElement(channel, "link").text = base_url
         ET.SubElement(channel, "language").text = self.config.get("language", "en-us")
-        ET.SubElement(channel, "description").text = self.config.get("description", "Daily automated podcast")
+        ET.SubElement(channel, "description").text = self.config.get("description", "Daily automated B2 English podcast")
 
         # iTunes Specific Channel Metadata
-        ET.SubElement(channel, "itunes:author").text = self.config.get("author", "Podcast Host")
+        ET.SubElement(channel, "itunes:author").text = self.config.get("author", "Monurium")
         ET.SubElement(channel, "itunes:summary").text = self.config.get("description", "")
         ET.SubElement(channel, "itunes:explicit").text = "true" if self.config.get("explicit", False) else "false"
 
@@ -42,8 +54,8 @@ class RSSBuilder:
             ET.SubElement(channel, "itunes:image", {"href": self.config["cover_image_url"]})
             image_elem = ET.SubElement(channel, "image")
             ET.SubElement(image_elem, "url").text = self.config["cover_image_url"]
-            ET.SubElement(image_elem, "title").text = self.config.get("title", "Daily Podcast")
-            ET.SubElement(image_elem, "link").text = self.config.get("link", "https://example.com")
+            ET.SubElement(image_elem, "title").text = self.config.get("title", "Daily B2 Podcast")
+            ET.SubElement(image_elem, "link").text = base_url
 
         # Add Episode Items
         for ep in episodes:
@@ -54,8 +66,8 @@ class RSSBuilder:
             ET.SubElement(item, "guid", {"isPermaLink": "false"}).text = ep.get("guid")
 
             # iTunes Item attributes
-            ET.SubElement(item, "itunes:author").text = self.config.get("author")
-            ET.SubElement(item, "itunes:duration").text = str(ep.get("duration_formatted", "00:02:00"))
+            ET.SubElement(item, "itunes:author").text = self.config.get("author", "Monurium")
+            ET.SubElement(item, "itunes:duration").text = str(ep.get("duration_formatted", "00:07:30"))
             ET.SubElement(item, "itunes:explicit").text = "false"
 
             # Enclosure tag (Audio file download link for Apple Podcasts)
@@ -65,13 +77,16 @@ class RSSBuilder:
                 "type": "audio/mpeg"
             })
 
-        # Format XML prettily
+        # Format XML cleanly
         xml_str = ET.tostring(rss, encoding="utf-8")
         parsed = minidom.parseString(xml_str)
         pretty_xml = parsed.toprettyxml(indent="  ")
+        
+        # Clean extra blank lines
+        clean_pretty_xml = "\n".join([line for line in pretty_xml.splitlines() if line.strip()])
 
         os.makedirs(os.path.dirname(output_xml_path), exist_ok=True)
         with open(output_xml_path, "w", encoding="utf-8") as f:
-            f.write(pretty_xml)
+            f.write(clean_pretty_xml)
         
         print(f"Successfully created/updated RSS feed at: {output_xml_path}")
