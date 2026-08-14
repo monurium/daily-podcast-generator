@@ -18,12 +18,15 @@ class EmailSender:
 
     def is_configured(self) -> bool:
         """Checks if SMTP credentials are provided in environment variables."""
+        if os.getenv("DISABLE_EMAIL", "").lower() in ("true", "1"):
+            print("ℹ️ DISABLE_EMAIL is set to true. Skipping email sending for test run.")
+            return False
         return bool(self.smtp_user and self.smtp_password and self.email_to)
 
     def send_podcast_email(self, episode_meta: Dict[str, Any], mp3_file_path: str) -> bool:
         """Sends an email containing news bullet points, vocabulary list, and MP3 audio attachment with dynamic duration."""
         if not self.is_configured():
-            print("ℹ️ SMTP credentials (SMTP_USER, SMTP_PASSWORD, EMAIL_TO) not set. Skipping email sending.")
+            print("ℹ️ Email sending skipped (disabled or SMTP credentials not set).")
             return False
 
         print(f"📧 Sending daily podcast email with news summaries to {self.email_to}...")
@@ -34,7 +37,6 @@ class EmailSender:
             msg["To"] = self.email_to
             msg["Subject"] = f"🎙️ {episode_meta['title']}"
 
-            # Format HTML Body with structured news summaries and dynamic duration
             duration_str = episode_meta.get('duration_formatted', '')
             duration_display = f" ({duration_str})" if duration_str else ""
             news_summary_html = episode_meta.get('bulletin_summary', episode_meta['script']).replace('\n', '<br>')
@@ -60,7 +62,6 @@ class EmailSender:
             """
             msg.attach(MIMEText(html_body, "html", "utf-8"))
 
-            # Attach MP3 Audio File
             if os.path.exists(mp3_file_path):
                 filename = os.path.basename(mp3_file_path)
                 with open(mp3_file_path, "rb") as attachment:
@@ -72,7 +73,6 @@ class EmailSender:
             else:
                 print(f"⚠️ Warning: Attachment MP3 not found at {mp3_file_path}")
 
-            # Send Email via TLS using context manager with 30s timeout
             with smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=30) as server:
                 server.starttls()
                 server.login(self.smtp_user, self.smtp_password)

@@ -12,27 +12,32 @@ def generate_silent_mp3_bytes(duration_ms: int = 600) -> bytes:
     return silent_frame * num_frames
 
 class AudioGenerator:
-    """Dual-Engine Audio Generator: Primary Google AI Studio (Gemini Audio) with seamless Edge-TTS backup fallback."""
+    """Dual-Engine Audio Generator: Primary Google AI Studio (Gemini Audio) with v1alpha API version support and Edge-TTS backup."""
 
     def __init__(self, edge_voice: str = DEFAULT_EDGE_VOICE):
         self.edge_voice = edge_voice
         self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
     def _generate_gemini_audio(self, script_text: str, output_mp3: str) -> bool:
-        """Synthesizes high-realism native audio using Google AI Studio Gemini API with candidate model fallbacks."""
+        """Synthesizes high-realism native audio using Google AI Studio Gemini API with v1alpha API version."""
         if not self.gemini_api_key:
+            print("⚠️ No GEMINI_API_KEY found in environment variables.")
             return False
 
-        print("✨ Attempting high-realism native audio generation via Google AI Studio (Gemini Audio)...")
+        print("✨ Attempting high-realism native audio generation via Google AI Studio (Gemini Audio v1alpha)...")
         
-        # Candidate active Google AI Studio models supporting audio output
-        candidate_models = ["gemini-2.5-flash", "gemini-2.0-flash-exp", "gemini-1.5-flash", "gemini-2.0-flash-001"]
+        # Models supporting audio output in v1alpha
+        candidate_models = ["gemini-2.0-flash-exp", "gemini-2.0-flash", "gemini-1.5-flash"]
         
         try:
             from google import genai
             from google.genai import types
 
-            client = genai.Client(api_key=self.gemini_api_key)
+            # Explicitly target v1alpha API version where audio modality is enabled
+            client = genai.Client(
+                api_key=self.gemini_api_key,
+                http_options={'api_version': 'v1alpha'}
+            )
 
             prompt = (
                 "You are an expert daily news podcast narrator. Read the following news bulletin script with a calm, friendly, clear, "
@@ -53,7 +58,7 @@ class AudioGenerator:
 
             for model_name in candidate_models:
                 try:
-                    print(f"🎙️ Trying Google AI Studio model: {model_name}...")
+                    print(f"🎙️ Trying Google AI Studio (v1alpha) model: {model_name}...")
                     response = client.models.generate_content(
                         model=model_name,
                         contents=prompt,
@@ -66,7 +71,7 @@ class AudioGenerator:
                                 os.makedirs(os.path.dirname(output_mp3) if os.path.dirname(output_mp3) else ".", exist_ok=True)
                                 with open(output_mp3, "wb") as f:
                                     f.write(part.inline_data.data)
-                                print(f"🎉 Google AI Studio Gemini audio generated successfully using model '{model_name}': {output_mp3}")
+                                print(f"🎉 SUCCESS! Google AI Studio Gemini audio generated via model '{model_name}': {output_mp3}")
                                 return True
                 except Exception as model_err:
                     print(f"⚠️ Model '{model_name}' attempt failed: {model_err}")
