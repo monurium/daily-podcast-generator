@@ -3,6 +3,7 @@ import re
 import asyncio
 from typing import Dict, Any, List
 
+# Default Edge-TTS backup narrator voice
 DEFAULT_EDGE_VOICE = "en-US-AndrewNeural"
 
 def generate_silent_mp3_bytes(duration_ms: int = 600) -> bytes:
@@ -19,7 +20,7 @@ class AudioGenerator:
         self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
     def _generate_gemini_audio(self, script_text: str, output_mp3: str) -> bool:
-        """Synthesizes high-realism native audio using Google AI Studio Gemini 2.0 Flash API."""
+        """Synthesizes high-realism native audio using Google AI Studio Gemini 2.0 Flash API with response_modalities=['AUDIO']."""
         if not self.gemini_api_key:
             return False
 
@@ -31,17 +32,27 @@ class AudioGenerator:
             client = genai.Client(api_key=self.gemini_api_key)
 
             prompt = (
-                "You are an expert news podcast narrator. Read the following news bulletin script with a calm, friendly, clear, "
+                "You are an expert daily news podcast narrator. Read the following news bulletin script with a calm, friendly, clear, "
                 "and engaging professional news anchor voice. Do not add commentary or background noise, just narrate the script naturally:\n\n"
                 f"{script_text}"
+            )
+
+            # Request native audio modality from Gemini 2.0 Flash using official response_modalities
+            config = types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                speech_config=types.SpeechConfig(
+                    voice_config=types.VoiceConfig(
+                        prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                            voice_name="Puck"  # "Puck" or "Charon" for warm male news anchor voice
+                        )
+                    )
+                )
             )
 
             response = client.models.generate_content(
                 model="gemini-2.0-flash",
                 contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="audio/mp3"
-                )
+                config=config
             )
 
             if response.candidates and response.candidates[0].content.parts:
@@ -50,10 +61,10 @@ class AudioGenerator:
                         os.makedirs(os.path.dirname(output_mp3) if os.path.dirname(output_mp3) else ".", exist_ok=True)
                         with open(output_mp3, "wb") as f:
                             f.write(part.inline_data.data)
-                        print(f"🎉 Google AI Studio Gemini audio generated successfully: {output_mp3}")
+                        print(f"🎉 Google AI Studio Gemini native audio generated successfully: {output_mp3}")
                         return True
 
-            print("⚠️ Google AI Studio audio response contained no audio inline_data. Falling back to Edge-TTS.")
+            print("⚠️ Google AI Studio audio response contained no inline audio data. Falling back to Edge-TTS.")
             return False
 
         except Exception as e:
@@ -90,7 +101,6 @@ class AudioGenerator:
             sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', clean_para) if s.strip()]
             
             for s_idx, sentence in enumerate(sentences):
-                # Filter out tiny strings or pure punctuation (must have at least 2 alphanumeric chars)
                 alphanumeric_chars = re.sub(r'[^a-zA-Z0-9]', '', sentence)
                 if len(alphanumeric_chars) >= 2:
                     is_last_in_para = (s_idx == len(sentences) - 1)
