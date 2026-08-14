@@ -12,7 +12,7 @@ RSS_FEEDS = [
 ]
 
 class ContentGenerator:
-    """Fetches real-time RSS news from top outlets and generates B2-level dialogue scripts via DeepSeek."""
+    """Fetches real-time RSS news from top outlets and generates B2-level educational monologue scripts via DeepSeek."""
 
     def __init__(self, api_key: str = None):
         self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY")
@@ -21,8 +21,9 @@ class ContentGenerator:
         """Fetches news published in the last 24 hours from BBC, NYT, Al Jazeera."""
         print(f"🌐 Scanning RSS feeds for news published in the last {hours_limit} hours...")
         articles = []
-        now = datetime.now(timezone.utc)
-        cutoff_time = now - timedelta(hours=hours_limit)
+        now = datetime.date.today()
+        now_dt = datetime.now(timezone.utc)
+        cutoff_time = now_dt - timedelta(hours=hours_limit)
 
         for feed_url in RSS_FEEDS:
             try:
@@ -49,22 +50,25 @@ class ContentGenerator:
         return "\n---\n".join(articles)
 
     def generate_script(self, raw_news: str) -> Dict[str, Any]:
-        """Generates two-host (Alex & Sam) B2 dialogue script using DeepSeek API."""
-        print("🤖 Writing B2 English podcast script using DeepSeek...")
+        """Generates single-narrator educational B2 monologue script using DeepSeek API."""
+        print("🤖 Writing single-speaker educational B2 English lesson script using DeepSeek...")
         
         today_date = datetime.now().strftime("%B %d, %Y")
         
         if not self.api_key:
             print("⚠️ HATA: DEEPSEEK_API_KEY ortam değişkeni bulunamadı. Örnek script kullanılıyor.")
             fallback_script = (
-                f"Alex: Welcome to today's daily news podcast for {today_date}.\n"
-                f"Sam: Hi Alex! Today we are looking at key developments across international affairs and technology.\n"
-                f"Alex: Renewable energy initiatives have accelerated globally this week, opening up new infrastructure investments.\n"
-                f"Sam: That's right, Alex. International cooperation continues to reshape modern sustainable development."
+                f"Hello and welcome to your Daily B2 English Digest for {today_date}.\n\n"
+                f"Today we will explore three key stories from around the world while learning important intermediate English vocabulary.\n\n"
+                f"Our first story focuses on global renewable energy progress. Solar and wind power installations have increased significantly this year. "
+                f"Notice our key B2 word: 'significantly', which means in a noticeable or important way.\n\n"
+                f"Our second story covers international trade agreements. Countries are working together to streamline commercial transport. "
+                f"Here, the key word is 'streamline', which means to make a process smoother and more efficient.\n\n"
+                f"To recap, today we learned 'significantly' and 'streamline'. Thank you for listening, and keep practicing your English every day!"
             )
             return {
-                "title": f"B2 Daily News Digest - {today_date}",
-                "summary": f"Daily B2 English news podcast covering world highlights for {today_date}.",
+                "title": f"B2 English News Lesson - {today_date}",
+                "summary": f"Single-speaker educational B2 English news lesson for {today_date}.",
                 "script": fallback_script,
                 "date": today_date
             }
@@ -72,18 +76,19 @@ class ContentGenerator:
         client = OpenAI(api_key=self.api_key, base_url="https://api.deepseek.com")
 
         system_prompt = f"""
-You are an expert news editor and English language teacher. Today is {today_date}.
-Create a daily news podcast script for B2-level English learners based ONLY on today's provided news.
+You are an expert, encouraging English language teacher presenting a daily news-based English lesson for B2-level learners. Today is {today_date}.
 
-CRITICAL FORMATTING RULES:
-1. Use 2 hosts: Alex (Male) and Sam (Female).
-2. Format EVERY dialogue line strictly starting with "Alex:" or "Sam:" like below:
-   Alex: Welcome to today's digest.
-   Sam: Thanks Alex, let's start with climate news.
-3. Select the top 3 most important news stories.
-4. Keep vocabulary strictly at B2 level. Naturally explain 3 key B2 vocabulary words during the podcast.
-5. Length: 400-500 words.
-Do NOT use Markdown bolding on names (e.g. do NOT write **Alex:**). Do NOT include sound effect notes like [Music] or (laughs).
+STRUCTURE AND PEDAGOGY RULES:
+1. SINGLE SPEAKER NARRATOR: Do NOT use dialogue tags (no "Alex:" or "Sam:"). Write as a continuous, clear, educational monologue spoken by one friendly teacher.
+2. SELECT THE TOP 3 STORIES: Choose the 3 most significant news stories from today's provided articles.
+3. CLEAR EDUCATIONAL STRUCTURE:
+   - Introduction: Warmly welcome the listener to today's English news bulletin.
+   - Story 1: Present the news clearly, then highlight 1 key B2 vocabulary word used in the story. Explain its definition and give an easy example sentence.
+   - Story 2: Present the news clearly, highlight 1 key B2 vocabulary word, explain definition and example.
+   - Story 3: Present the news clearly, highlight 1 key B2 vocabulary word, explain definition and example.
+   - Vocabulary Recap & Conclusion: Briefly review the 3 B2 words learned today and give an encouraging closing statement.
+4. LANGUAGE LEVEL: B2 English level. Clear pronunciation-friendly sentences, natural phrasing, 400-500 words total.
+5. Do NOT include sound effects or markdown formatting like **bold** names.
 """
 
         response = client.chat.completions.create(
@@ -96,8 +101,8 @@ Do NOT use Markdown bolding on names (e.g. do NOT write **Alex:**). Do NOT inclu
         )
 
         script_text = response.choices[0].message.content
-        title = f"B2 Daily News Digest - {today_date}"
-        summary = f"Learn B2 English with today's top world news highlights for {today_date} featuring hosts Alex and Sam."
+        title = f"B2 English Daily Lesson - {today_date}"
+        summary = f"Educational B2 English monologue news lesson for {today_date} featuring key vocabulary explanations."
 
         return {
             "title": title,
