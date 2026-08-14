@@ -19,7 +19,7 @@ RSS_FEEDS = [
 ]
 
 class ContentGenerator:
-    """Fetches real-time tech and world politics RSS feeds and generates 5-story B2 English educational lessons via DeepSeek."""
+    """Fetches real-time tech and world politics RSS feeds and generates 8-story B2 English educational lessons (7-8 minutes audio duration) via DeepSeek."""
 
     def __init__(self, api_key: str = None):
         self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY")
@@ -56,8 +56,8 @@ class ContentGenerator:
         return "\n---\n".join(articles)
 
     def generate_script(self, raw_news: str) -> Dict[str, Any]:
-        """Generates single-narrator educational B2 monologue script covering 5 top stories using DeepSeek API."""
-        print("🤖 Writing 5-story tech & world politics educational B2 English lesson using DeepSeek...")
+        """Generates single-narrator educational B2 monologue script covering 8 top stories (target 7-8 min audio) using DeepSeek API."""
+        print("🤖 Writing 8-story tech & world politics educational B2 English lesson (7-8 min audio) using DeepSeek...")
         
         today_date = datetime.now().strftime("%B %d, %Y")
         
@@ -65,22 +65,20 @@ class ContentGenerator:
             print("⚠️ HATA: DEEPSEEK_API_KEY ortam değişkeni bulunamadı. Örnek script kullanılıyor.")
             fallback_script = (
                 f"Hello and welcome to your Daily B2 English Digest for {today_date}.\n\n"
-                f"Today we explore five major stories across technology, AI breakthroughs, and world affairs.\n\n"
-                f"Story 1: Artificial intelligence models are advancing rapidly in software development. "
-                f"Key B2 Word: 'accelerate' (to happen faster).\n\n"
-                f"Story 2: Global semiconductor supply chains are expanding in Europe and Asia. "
-                f"Key B2 Word: 'resilient' (able to recover quickly).\n\n"
-                f"Story 3: International climate summits have reached new consensus on clean energy. "
-                f"Key B2 Word: 'consensus' (general agreement).\n\n"
-                f"Story 4: Autonomous robotics technology is transforming industrial automation. "
-                f"Key B2 Word: 'autonomous' (independent, self-governing).\n\n"
-                f"Story 5: Major trade treaties are being updated for digital services. "
-                f"Key B2 Word: 'implementation' (putting a decision or plan into effect).\n\n"
-                f"To recap, today we learned accelerate, resilient, consensus, autonomous, and implementation. Keep practicing!"
+                f"Today we explore eight major stories across technology, AI breakthroughs, and world affairs.\n\n"
+                f"Story 1: Artificial intelligence models are advancing rapidly in software development. Key B2 Word: 'accelerate' (to happen faster).\n\n"
+                f"Story 2: Global semiconductor supply chains are expanding in Europe and Asia. Key B2 Word: 'resilient' (able to recover quickly).\n\n"
+                f"Story 3: International climate summits have reached new consensus on clean energy. Key B2 Word: 'consensus' (general agreement).\n\n"
+                f"Story 4: Autonomous robotics technology is transforming industrial automation. Key B2 Word: 'autonomous' (independent, self-governing).\n\n"
+                f"Story 5: Major trade treaties are being updated for digital services. Key B2 Word: 'implementation' (putting a decision or plan into effect).\n\n"
+                f"Story 6: Breakthroughs in quantum computing research show promising encryption results. Key B2 Word: 'promising' (showing sign of future success).\n\n"
+                f"Story 7: International space agencies announce collaborative lunar exploration missions. Key B2 Word: 'collaborative' (produced by working together).\n\n"
+                f"Story 8: New cybersecurity frameworks are adopted across infrastructure networks. Key B2 Word: 'comprehensive' (including all or nearly all elements).\n\n"
+                f"To recap, today we learned accelerate, resilient, consensus, autonomous, implementation, promising, collaborative, and comprehensive. Keep practicing!"
             )
             return {
-                "title": f"B2 English Tech & World Digest (5 Stories) - {today_date}",
-                "summary": f"Single-speaker educational B2 English 5-story lesson for {today_date}.",
+                "title": f"B2 English Tech & World Bulletin (7-8 Min) - {today_date}",
+                "summary": f"Single-speaker 8-story educational B2 English lesson for {today_date}.",
                 "script": fallback_script,
                 "date": today_date
             }
@@ -90,17 +88,18 @@ class ContentGenerator:
         system_prompt = f"""
 You are an expert, encouraging English language teacher presenting a daily news-based English lesson for B2-level learners. Today is {today_date}.
 
-PRIORITY SELECTION & CONTENT RULES:
-1. SELECTION PRIORITY: Select exactly TOP 5 STORIES from today's provided news. Prioritize:
+PRIORITY SELECTION & AUDIO LENGTH RULES:
+1. TARGET LENGTH: 950 to 1100 words total (designed for approximately 7 to 8 minutes of spoken educational audio).
+2. SELECTION PRIORITY: Select exactly TOP 8 STORIES from today's provided news. Prioritize:
    - Technology, AI breakthroughs, software, engineering, and innovation.
    - Critical major world politics and international relations developments.
-2. SINGLE SPEAKER NARRATOR: Do NOT use dialogue tags (no "Alex:" or "Sam:"). Write as a clear, educational monologue spoken by one friendly teacher.
-3. STRUCTURE:
-   - Introduction: Warmly welcome the listener to today's top 5 tech and world news bulletin.
-   - 5 Stories (Story 1 through Story 5): For EACH story, explain the news clearly at B2 level, then highlight 1 key B2 vocabulary word used, providing its definition and a clear example sentence.
-   - Vocabulary Recap & Conclusion: Review all 5 B2 words learned today with a warm closing thought.
-4. LENGTH & LEVEL: B2 English level. Clear, well-paced sentences, 550-700 words total.
-5. Do NOT include sound effects or markdown formatting like **bold** names.
+3. SINGLE SPEAKER NARRATOR: Do NOT use dialogue tags (no "Alex:" or "Sam:"). Write as a clear, educational monologue spoken by one friendly teacher.
+4. STRUCTURE:
+   - Introduction: Warmly welcome the listener to today's 7-8 minute top tech and world news English lesson.
+   - 8 Stories (Story 1 through Story 8): For EACH story, explain the news in detailed B2 English, then highlight 1 key B2 vocabulary word used, providing its definition and a clear example sentence.
+   - Comprehensive Vocabulary Recap & Conclusion: Review all 8 B2 words learned today with an encouraging closing thought.
+5. LEVEL & STYLE: B2 English level. Clear pronunciation-friendly sentences, rich educational content.
+6. Do NOT include sound effects or markdown formatting like **bold** names.
 """
 
         response = client.chat.completions.create(
@@ -113,8 +112,8 @@ PRIORITY SELECTION & CONTENT RULES:
         )
 
         script_text = response.choices[0].message.content
-        title = f"B2 English Tech & World Digest (5 Stories) - {today_date}"
-        summary = f"Educational 5-story B2 English lesson focusing on Technology, AI, and World Politics for {today_date}."
+        title = f"B2 English Tech & World Bulletin (7-8 Min) - {today_date}"
+        summary = f"Educational 8-story B2 English lesson (~7-8 minutes) focusing on Technology, AI, and World Politics for {today_date}."
 
         return {
             "title": title,
