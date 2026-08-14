@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+  <channel>
+    <title>Daily AI &amp; Tech Bulletin</title>
+    <link>https://monurium.github.io/daily-podcast-generator</link>
+    <language>en-us</language>
+    <description>Your automated daily podcast bringing you the latest updates in AI, technology, and science.</description>
+    <itunes:author>Monurium</itunes:author>
+    <itunes:summary>Your automated daily podcast bringing you the latest updates in AI, technology, and science.</itunes:summary>
+    <itunes:explicit>false</itunes:explicit>
+    <itunes:category text="Technology">
+      <itunes:category text="Tech News"/>
+    </itunes:category>
+    <itunes:image href="https://monurium.github.io/daily-podcast-generator/cover.jpg"/>
+    <image>
+      <url>https://monurium.github.io/daily-podcast-generator/cover.jpg</url>
+      <title>Daily AI &amp; Tech Bulletin</title>
+      <link>https://monurium.github.io/daily-podcast-generator</link>
+    </image>
+    <item>
+      <title>B2 Daily News Digest - August 14, 2026</title>
+      <description>Learn B2 English with today's top world news highlights for August 14, 2026 featuring hosts Alex and Sam.</description>
+      <pubDate>Fri, 14 Aug 2026 12:35:14 GMT</pubDate>
+      <guid isPermaLink="false">ep_20260814_029915</guid>
+      <itunes:author>Monurium</itunes:author>
+      <itunes:duration>00:02:51</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+      <enclosure url="https://monurium.github.io/daily-podcast-generator/episodes/ep_20260814_029915.mp3" length="977328" type="audio/mpeg"/>
+    </item>
+  </channel>
+</rss>
