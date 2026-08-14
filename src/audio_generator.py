@@ -12,32 +12,42 @@ def generate_silent_mp3_bytes(duration_ms: int = 600) -> bytes:
     return silent_frame * num_frames
 
 class AudioGenerator:
-    """Dual-Engine Audio Generator: Primary Google AI Studio (Gemini Audio) with v1alpha API version support and Edge-TTS backup."""
+    """Dual-Engine Audio Generator: Primary Google AI Studio (Gemini Audio) with diagnostic model discovery."""
 
     def __init__(self, edge_voice: str = DEFAULT_EDGE_VOICE):
         self.edge_voice = edge_voice
         self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
     def _generate_gemini_audio(self, script_text: str, output_mp3: str) -> bool:
-        """Synthesizes high-realism native audio using Google AI Studio Gemini API with v1alpha API version."""
+        """Discovers available Google AI Studio models and synthesizes audio."""
         if not self.gemini_api_key:
             print("⚠️ No GEMINI_API_KEY found in environment variables.")
             return False
 
-        print("✨ Attempting high-realism native audio generation via Google AI Studio (Gemini Audio v1alpha)...")
-        
-        # Models supporting audio output in v1alpha
-        candidate_models = ["gemini-2.0-flash-exp", "gemini-2.0-flash", "gemini-1.5-flash"]
+        print("✨ Attempting high-realism native audio generation via Google AI Studio...")
         
         try:
             from google import genai
             from google.genai import types
 
-            # Explicitly target v1alpha API version where audio modality is enabled
-            client = genai.Client(
-                api_key=self.gemini_api_key,
-                http_options={'api_version': 'v1alpha'}
-            )
+            client = genai.Client(api_key=self.gemini_api_key)
+
+            # Discover all available models for this API key
+            try:
+                available_models = [m.name for m in client.models.list()]
+                print(f"📋 Available Google AI Studio models for this key ({len(available_models)} total):")
+                for model_item in available_models[:15]:
+                    print(f"  - {model_item}")
+            except Exception as list_err:
+                print(f"⚠️ Could not list models: {list_err}")
+                available_models = []
+
+            # Filter model candidates from discovered available models
+            candidate_models = [
+                m for m in available_models if any(k in m.lower() for k in ["flash", "audio", "tts", "gemini"])
+            ]
+            if not candidate_models:
+                candidate_models = ["gemini-1.5-flash-latest", "gemini-1.5-pro-latest", "gemini-2.0-flash-lite"]
 
             prompt = (
                 "You are an expert daily news podcast narrator. Read the following news bulletin script with a calm, friendly, clear, "
@@ -57,10 +67,12 @@ class AudioGenerator:
             )
 
             for model_name in candidate_models:
+                # Strip leading 'models/' if present
+                clean_name = model_name.replace("models/", "")
                 try:
-                    print(f"🎙️ Trying Google AI Studio (v1alpha) model: {model_name}...")
+                    print(f"🎙️ Trying Google AI Studio model: '{clean_name}'...")
                     response = client.models.generate_content(
-                        model=model_name,
+                        model=clean_name,
                         contents=prompt,
                         config=config
                     )
@@ -71,12 +83,12 @@ class AudioGenerator:
                                 os.makedirs(os.path.dirname(output_mp3) if os.path.dirname(output_mp3) else ".", exist_ok=True)
                                 with open(output_mp3, "wb") as f:
                                     f.write(part.inline_data.data)
-                                print(f"🎉 SUCCESS! Google AI Studio Gemini audio generated via model '{model_name}': {output_mp3}")
+                                print(f"🎉 SUCCESS! Google AI Studio Gemini audio generated via model '{clean_name}': {output_mp3}")
                                 return True
                 except Exception as model_err:
-                    print(f"⚠️ Model '{model_name}' attempt failed: {model_err}")
+                    print(f"⚠️ Model '{clean_name}' attempt failed: {model_err}")
 
-            print("⚠️ All Google AI Studio candidate models failed. Falling back to Edge-TTS backup.")
+            print("⚠️ All discovered Google AI Studio candidate models failed. Falling back to Edge-TTS backup.")
             return False
 
         except Exception as e:
