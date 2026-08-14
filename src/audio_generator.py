@@ -3,7 +3,6 @@ import re
 import asyncio
 from typing import Dict, Any, List
 
-# Default Edge-TTS backup narrator voice
 DEFAULT_EDGE_VOICE = "en-US-AndrewNeural"
 
 def generate_silent_mp3_bytes(duration_ms: int = 600) -> bytes:
@@ -13,18 +12,22 @@ def generate_silent_mp3_bytes(duration_ms: int = 600) -> bytes:
     return silent_frame * num_frames
 
 class AudioGenerator:
-    """Dual-Engine Audio Generator: Primary Google AI Studio (Gemini 2.0 Flash Audio) with seamless Edge-TTS backup fallback."""
+    """Dual-Engine Audio Generator: Primary Google AI Studio (Gemini Audio) with seamless Edge-TTS backup fallback."""
 
     def __init__(self, edge_voice: str = DEFAULT_EDGE_VOICE):
         self.edge_voice = edge_voice
         self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
     def _generate_gemini_audio(self, script_text: str, output_mp3: str) -> bool:
-        """Synthesizes high-realism native audio using Google AI Studio Gemini 2.0 Flash API with response_modalities=['AUDIO']."""
+        """Synthesizes high-realism native audio using Google AI Studio Gemini API with candidate model fallbacks."""
         if not self.gemini_api_key:
             return False
 
-        print("✨ Attempting high-realism native audio generation via Google AI Studio (Gemini 2.0 Flash)...")
+        print("✨ Attempting high-realism native audio generation via Google AI Studio (Gemini Audio)...")
+        
+        # Candidate active Google AI Studio models supporting audio output
+        candidate_models = ["gemini-2.5-flash", "gemini-2.0-flash-exp", "gemini-1.5-flash", "gemini-2.0-flash-001"]
+        
         try:
             from google import genai
             from google.genai import types
@@ -37,34 +40,38 @@ class AudioGenerator:
                 f"{script_text}"
             )
 
-            # Request native audio modality from Gemini 2.0 Flash using official response_modalities
             config = types.GenerateContentConfig(
                 response_modalities=["AUDIO"],
                 speech_config=types.SpeechConfig(
                     voice_config=types.VoiceConfig(
                         prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                            voice_name="Puck"  # "Puck" or "Charon" for warm male news anchor voice
+                            voice_name="Puck"
                         )
                     )
                 )
             )
 
-            response = client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=prompt,
-                config=config
-            )
+            for model_name in candidate_models:
+                try:
+                    print(f"🎙️ Trying Google AI Studio model: {model_name}...")
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=prompt,
+                        config=config
+                    )
 
-            if response.candidates and response.candidates[0].content.parts:
-                for part in response.candidates[0].content.parts:
-                    if hasattr(part, "inline_data") and part.inline_data:
-                        os.makedirs(os.path.dirname(output_mp3) if os.path.dirname(output_mp3) else ".", exist_ok=True)
-                        with open(output_mp3, "wb") as f:
-                            f.write(part.inline_data.data)
-                        print(f"🎉 Google AI Studio Gemini native audio generated successfully: {output_mp3}")
-                        return True
+                    if response.candidates and response.candidates[0].content.parts:
+                        for part in response.candidates[0].content.parts:
+                            if hasattr(part, "inline_data") and part.inline_data:
+                                os.makedirs(os.path.dirname(output_mp3) if os.path.dirname(output_mp3) else ".", exist_ok=True)
+                                with open(output_mp3, "wb") as f:
+                                    f.write(part.inline_data.data)
+                                print(f"🎉 Google AI Studio Gemini audio generated successfully using model '{model_name}': {output_mp3}")
+                                return True
+                except Exception as model_err:
+                    print(f"⚠️ Model '{model_name}' attempt failed: {model_err}")
 
-            print("⚠️ Google AI Studio audio response contained no inline audio data. Falling back to Edge-TTS.")
+            print("⚠️ All Google AI Studio candidate models failed. Falling back to Edge-TTS backup.")
             return False
 
         except Exception as e:
