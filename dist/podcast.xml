@@ -2,12 +2,12 @@
 <rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
   <channel>
     <atom:link href="https://monurium.github.io/daily-podcast-generator/podcast.xml" rel="self" type="application/rss+xml"/>
-    <title>Daily Tech &amp; World News Digest</title>
+    <title>AI Pulse Daily</title>
     <link>https://monurium.github.io/daily-podcast-generator</link>
     <language>en-us</language>
-    <description>Automated daily audio news bulletin covering the latest developments in technology, AI, and global affairs.</description>
+    <description>Your daily dose of Artificial Intelligence and tech breakthroughs, served in engaging conversational English.</description>
     <itunes:author>Monurium</itunes:author>
-    <itunes:summary>Automated daily audio news bulletin covering the latest developments in technology, AI, and global affairs.</itunes:summary>
+    <itunes:summary>Your daily dose of Artificial Intelligence and tech breakthroughs, served in engaging conversational English.</itunes:summary>
     <itunes:explicit>false</itunes:explicit>
     <itunes:owner>
       <itunes:name>Monurium</itunes:name>
@@ -19,7 +19,7 @@
     <itunes:image href="https://monurium.github.io/daily-podcast-generator/cover.jpg"/>
     <image>
       <url>https://monurium.github.io/daily-podcast-generator/cover.jpg</url>
-      <title>Daily Tech &amp; World News Digest</title>
+      <title>AI Pulse Daily</title>
       <link>https://monurium.github.io/daily-podcast-generator</link>
     </image>
     <item>
