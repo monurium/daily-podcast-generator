@@ -18,19 +18,24 @@ class ContentGenerator:
         )
         
         self.rss_feeds = [
-            "https://feeds.bbci.co.uk/news/technology/rss.xml",
-            "https://feeds.bbci.co.uk/news/world/rss.xml",
-            "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",
-            "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
+            "https://techcrunch.com/category/artificial-intelligence/feed/",
             "https://techcrunch.com/feed/",
-            "https://www.wired.com/feed/rss",
-            "https://arstechnica.com/feed/"
+            "https://www.wired.com/feed/category/business/latest/rss",
+            "https://arstechnica.com/feed/",
+            "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",
+            "https://feeds.bbci.co.uk/news/technology/rss.xml"
         ]
 
     def fetch_fresh_news(self, hours_limit: int = 24) -> str:
-        """Collects fresh news entries published within the last `hours_limit` hours."""
+        """Collects fresh AI & Tech news entries, applying strict Spotify-compliant family safety filters."""
         fresh_articles: List[str] = []
-        print(f"📡 Scanning {len(self.rss_feeds)} RSS news feeds for fresh articles (last {hours_limit}h)...")
+        print(f"📡 Scanning {len(self.rss_feeds)} AI & Tech RSS feeds for fresh articles (last {hours_limit}h)...")
+
+        forbidden_keywords = [
+            "war", "kill", "murder", "suicide", "shooting", "attack", "terror", 
+            "sexual", "porn", "gore", "deadly", "explosion", "military", "crime", 
+            "death", "assault", "violence", "conflict", "bomb", "hostage"
+        ]
 
         for feed_url in self.rss_feeds:
             try:
@@ -38,6 +43,12 @@ class ContentGenerator:
                 for entry in parsed.entries[:5]:
                     title = entry.get("title", "").strip()
                     summary = entry.get("summary", "").strip()
+                    combined_text = f"{title} {summary}".lower()
+                    
+                    if any(bad_word in combined_text for bad_word in forbidden_keywords):
+                        print(f"🛡️ Filtering out unsafe content entry: '{title}'")
+                        continue
+                    
                     if title:
                         clean_item = f"• Title: {title}\n  Summary: {summary[:250]}"
                         fresh_articles.append(clean_item)
@@ -51,24 +62,26 @@ class ContentGenerator:
 
     def generate_script(self, raw_news_context: str) -> Dict[str, Any]:
         """Generates a lively B2 English educational news script targeting 1400-1500 words for an exact 7.5-8 min audio duration."""
-        print("🤖 Prompting DeepSeek-V3 for a 1400-1500 word lively B2 English news bulletin...")
+        print("🤖 Prompting DeepSeek-V3 for a 1400-1500 word AI & Tech B2 English monologue script...")
 
         system_prompt = (
-            "You are a top-tier English language educator and daily news podcast host. "
-            "Your task is to write an engaging, lively, and articulate daily news podcast script for intermediate (B2) learners.\n\n"
+            "You are a top-tier English language educator and daily technology podcast host. "
+            "Your task is to write an engaging, lively, and articulate daily AI and technology news monologue script for intermediate (B2) learners.\n\n"
             "CRITICAL MANDATES:\n"
-            "1. TARGET LENGTH: STRICTLY WRITE BETWEEN 1400 AND 1500 WORDS TOTAL. This is required so the spoken audio reaches exactly 7.5 to 8.0 minutes.\n"
-            "2. GREETING & INTRO: Start immediately with a friendly greeting and date. NO formal course or lesson intros. Example: 'Hello everyone! Welcome to today's news bulletin for Friday, August 14th.'\n"
-            "3. NO B2 LEVEL MENTIONS: Never say 'B2 level' or 'for B2 learners' in the script.\n"
-            "4. STRUCTURE: Select 8 intriguing tech and world news stories. For EACH story, provide 160-180 words explaining full news context, global significance, and clear example usages of key vocabulary.\n"
-            "5. NO SPECIAL CHARACTERS: Write plain, clear English sentences without asterisks, brackets, or markdown formatting.\n"
-            "6. VOCABULARY HIGHLIGHTS: In each story, naturally introduce and explain 1-2 advanced terms (e.g., 'pivotal', 'unprecedented', 'resilience') in plain words.\n"
-            "7. SUMMARY BLOCK: At the very end of your response, output a structured bulleted summary of all 8 news items and a Key Vocabulary list."
+            "1. TOPIC FOCUS: Focus EXCLUSIVELY on Artificial Intelligence (AI), Machine Learning, Software Innovations, Robotics, and Future Tech.\n"
+            "2. SPOTIFY SAFETY MANDATE: Strictly produce 100% Spotify-compliant, family-friendly (PG) content. NEVER include news, references, or vocabulary about war, military conflict, suicide, murder, crime, violence, or adult/sexual themes.\n"
+            "3. TARGET LENGTH: STRICTLY WRITE BETWEEN 1400 AND 1500 WORDS TOTAL. Spoken audio reaches 7.5 to 8.0 minutes.\n"
+            "4. GREETING & INTRO: Start immediately with a friendly greeting and date. NO formal course or lesson intros.\n"
+            "5. NO B2 LEVEL MENTIONS: Never say 'B2 level' or 'for B2 learners' in the script.\n"
+            "6. STRUCTURE: Select 6-8 intriguing AI and technology news stories. Explain full context, tech significance, and vocabulary.\n"
+            "7. NO SPECIAL CHARACTERS: Write plain, clear English sentences without asterisks, brackets, or markdown formatting.\n"
+            "8. VOCABULARY HIGHLIGHTS: In each story, naturally introduce and explain 1-2 advanced terms (e.g., 'pivotal', 'unprecedented', 'resilience') in plain words.\n"
+            "9. SUMMARY BLOCK: At the very end of your response, output a structured bulleted summary of all news items and a Key Vocabulary list."
         )
 
         user_prompt = (
-            f"Here is today's raw news context:\n\n{raw_news_context}\n\n"
-            "Generate a 1400-1500 word lively, engaging news podcast script that covers 8 distinct stories in full detail."
+            f"Here is today's raw AI & Tech news context:\n\n{raw_news_context}\n\n"
+            "Generate a 1400-1500 word lively AI & Technology news monologue script covering the top stories in full detail."
         )
 
         response = self.client.chat.completions.create(
@@ -83,7 +96,7 @@ class ContentGenerator:
 
         full_content = response.choices[0].message.content.strip()
         lines = full_content.split("\n")
-        title = f"Daily News Digest - {datetime.date.today().strftime('%B %d, %Y')}"
+        title = f"Daily Tech & AI Digest - {datetime.date.today().strftime('%B %d, %Y')}"
         
         for line in lines[:5]:
             if line.lower().startswith("title:") or line.lower().startswith("# title:"):
@@ -95,30 +108,32 @@ class ContentGenerator:
         return {
             "title": title,
             "script": full_content,
-            "summary": "Daily technology and global news podcast bulletin for B2 English learners.",
+            "summary": "Daily Artificial Intelligence and technology news monologue for B2 English learners.",
             "bulletin_summary": summary_bulletin
         }
 
     def generate_dialogue_script(self, raw_news_context: str) -> Dict[str, Any]:
         """Generates a lively 2-host podcast conversation script (Alex & Sarah) targeting 1200-1400 words."""
-        print("🤖 Prompting DeepSeek-V3 for a 2-host conversational news podcast script...")
+        print("🤖 Prompting DeepSeek-V3 for a 2-host AI & Tech conversational podcast script...")
 
         system_prompt = (
             "You are a top-tier podcast producer and English language educator. "
-            "Your task is to write a dynamic, engaging 2-host daily news podcast conversation script for intermediate (B2) learners.\n\n"
+            "Your task is to write a dynamic, engaging 2-host daily Artificial Intelligence and Technology news podcast conversation script for intermediate (B2) learners.\n\n"
             "CRITICAL MANDATES:\n"
-            "1. HOST ROLES: The co-hosts are Alex (Host A - energetic interviewer) and Sarah (Host B - knowledgeable articulate expert).\n"
-            "2. FORMAT: Format the conversation strictly line-by-line using speaker labels: 'Alex: ...' and 'Sarah: ...'.\n"
-            "3. TARGET LENGTH: WRITE BETWEEN 1200 AND 1400 WORDS TOTAL for an optimal 6.5-7.5 minute spoken audio duration.\n"
-            "4. GREETING & INTRO: Start immediately with a friendly greeting between Alex and Sarah. NO formal course intros.\n"
-            "5. NO B2 LEVEL MENTIONS: Never say 'B2 level' or 'for B2 learners' in the script.\n"
-            "6. CONTENT: Discuss 5-6 intriguing tech and global news stories from the context with lively back-and-forth banter, reactions, and clear explanations of key concepts.\n"
-            "7. NO SPECIAL CHARACTERS: Write clean sentences without markdown formatting like asterisks or brackets."
+            "1. TOPIC FOCUS: Focus EXCLUSIVELY on Artificial Intelligence (AI), Machine Learning, Tech Startups, Software, and Future Tech Innovations.\n"
+            "2. SPOTIFY SAFETY MANDATE: Strictly produce 100% Spotify-compliant, family-friendly (PG) content. NEVER include news, references, or vocabulary about war, military conflict, suicide, murder, crime, violence, or adult/sexual themes.\n"
+            "3. HOST ROLES: The co-hosts are Alex (Host A - energetic interviewer) and Sarah (Host B - knowledgeable articulate AI expert).\n"
+            "4. FORMAT: Format the conversation strictly line-by-line using speaker labels: 'Alex: ...' and 'Sarah: ...'.\n"
+            "5. TARGET LENGTH: WRITE BETWEEN 1200 AND 1400 WORDS TOTAL for an optimal 6.5-7.5 minute spoken audio duration.\n"
+            "6. GREETING & INTRO: Start immediately with a friendly greeting between Alex and Sarah discussing today's tech & AI headlines.\n"
+            "7. NO B2 LEVEL MENTIONS: Never say 'B2 level' or 'for B2 learners' in the script.\n"
+            "8. CONTENT: Discuss 5-6 intriguing AI and tech news stories from the context with lively back-and-forth banter, reactions, and clear explanations of key concepts.\n"
+            "9. NO SPECIAL CHARACTERS: Write clean sentences without markdown formatting like asterisks or brackets."
         )
 
         user_prompt = (
-            f"Here is today's raw news context:\n\n{raw_news_context}\n\n"
-            "Generate a 2-host daily news podcast conversation script (Alex & Sarah) covering the top stories in interactive detail."
+            f"Here is today's raw AI & Tech news context:\n\n{raw_news_context}\n\n"
+            "Generate a 2-host daily AI & Tech podcast conversation script (Alex & Sarah) covering the top stories in interactive detail."
         )
 
         response = self.client.chat.completions.create(
@@ -132,13 +147,13 @@ class ContentGenerator:
         )
 
         full_content = response.choices[0].message.content.strip()
-        title = f"Daily News Podcast (Co-Hosts) - {datetime.date.today().strftime('%B %d, %Y')}"
+        title = f"Daily AI & Tech Podcast (Co-Hosts) - {datetime.date.today().strftime('%B %d, %Y')}"
         summary_bulletin = self._format_bulletin_summary(full_content)
 
         return {
             "title": title,
             "script": full_content,
-            "summary": "Dual-host conversational technology and global news podcast for English learners.",
+            "summary": "Dual-host conversational AI and technology news podcast for English learners.",
             "bulletin_summary": summary_bulletin
         }
 
