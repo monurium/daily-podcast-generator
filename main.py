@@ -35,53 +35,76 @@ def run_daily_podcast_pipeline():
         raw_news = "Global developments in technology, environment, and economy continue to evolve today."
 
     script_data = content_gen.generate_script(raw_news)
+    dialogue_script_data = content_gen.generate_dialogue_script(raw_news)
 
-    # Save script text locally
+    # Save script texts locally
     os.makedirs("output", exist_ok=True)
     script_file_path = os.path.join("output", "b2_script.txt")
+    dialogue_file_path = os.path.join("output", "dialogue_script.txt")
+    
     with open(script_file_path, "w", encoding="utf-8") as f:
         f.write(script_data["script"])
-    print(f"📄 Script saved to: {script_file_path}")
+    with open(dialogue_file_path, "w", encoding="utf-8") as f:
+        f.write(dialogue_script_data["script"])
+        
+    print(f"📄 Monologue Script saved to: {script_file_path}")
+    print(f"📄 Dialogue Script saved to: {dialogue_file_path}")
 
     # 3. Audio Synthesis (Dual-Engine: Google AI Studio Primary with Edge-TTS Backup)
-    episode_id = f"ep_{datetime.date.today().strftime('%Y%m%d')}_{uuid.uuid4().hex[:6]}"
-    temp_audio_path = os.path.join("output", "temp", f"{episode_id}.mp3")
-
-    print("\n[Step 2/5] Synthesizing 7-8 min MP3/WAV audio monologue...")
     audio_gen = AudioGenerator()
-    audio_meta = audio_gen.text_to_audio(script_data["script"], temp_audio_path)
-
-    # 4. Publication & Manifest Sync
-    print("\n[Step 3/5] Publishing episode to distribution directory...")
-    publisher = Publisher(output_dir=output_dir)
+    today_str = datetime.date.today().strftime('%Y%m%d')
     pub_date = datetime.datetime.now(datetime.timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
+    publisher = Publisher(output_dir=output_dir)
 
-    episode_meta = {
-        "id": episode_id,
-        "title": script_data["title"],
+    # --- 3a. Synthesize Monologue Episode ---
+    mono_episode_id = f"ep_{today_str}_mono_{uuid.uuid4().hex[:6]}"
+    temp_mono_path = os.path.join("output", "temp", f"{mono_episode_id}.mp3")
+    print("\n[Step 2a/5] Synthesizing 7-8 min MP3 audio monologue...")
+    mono_audio_meta = audio_gen.text_to_audio(script_data["script"], temp_mono_path)
+
+    mono_episode_meta = {
+        "id": mono_episode_id,
+        "title": script_data["title"] + " (Monologue)",
         "summary": script_data["summary"],
         "script": script_data["script"],
         "bulletin_summary": script_data.get("bulletin_summary", script_data["summary"]),
         "pub_date": pub_date,
-        "file_size": audio_meta["file_size"],
-        "duration_formatted": audio_meta["duration_formatted"]
+        "file_size": mono_audio_meta["file_size"],
+        "duration_formatted": mono_audio_meta["duration_formatted"]
     }
+    publisher.add_episode(mono_episode_meta, temp_mono_path, base_url)
 
-    all_episodes = publisher.add_episode(episode_meta, temp_audio_path, base_url)
+    # --- 3b. Synthesize 2-Host Dialogue Podcast Episode ---
+    dialogue_episode_id = f"ep_{today_str}_podcast_{uuid.uuid4().hex[:6]}"
+    temp_dialogue_path = os.path.join("output", "temp", f"{dialogue_episode_id}.mp3")
+    print("\n[Step 2b/5] Synthesizing 2-Host (Alex & Sarah) MP3 audio podcast conversation...")
+    dialogue_audio_meta = audio_gen.dialogue_to_audio(dialogue_script_data["script"], temp_dialogue_path)
 
-    # 5. RSS XML Feed Generation for Apple Podcasts
+    dialogue_episode_meta = {
+        "id": dialogue_episode_id,
+        "title": dialogue_script_data["title"],
+        "summary": dialogue_script_data["summary"],
+        "script": dialogue_script_data["script"],
+        "bulletin_summary": dialogue_script_data.get("bulletin_summary", dialogue_script_data["summary"]),
+        "pub_date": pub_date,
+        "file_size": dialogue_audio_meta["file_size"],
+        "duration_formatted": dialogue_audio_meta["duration_formatted"]
+    }
+    all_episodes = publisher.add_episode(dialogue_episode_meta, temp_dialogue_path, base_url)
+
+    # 4. RSS XML Feed Generation for Apple Podcasts
     print("\n[Step 4/5] Updating Apple Podcasts RSS feed (podcast.xml)...")
     rss_builder = RSSBuilder(config=config)
     rss_path = os.path.join(output_dir, config.get("feed_filename", "podcast.xml"))
     rss_builder.build_feed(all_episodes, rss_path)
 
-    # 6. Optional Email Delivery with Audio Attachment & News Summaries
+    # 5. Optional Email Delivery with Audio Attachment & News Summaries
     print("\n[Step 5/5] Checking email delivery configuration...")
     email_sender = EmailSender()
-    email_sender.send_podcast_email(episode_meta, temp_audio_path)
+    email_sender.send_podcast_email(dialogue_episode_meta, temp_dialogue_path)
 
     print("\n" + "=" * 60)
-    print("🎉 SUCCESS: Daily B2 podcast episode generated, RSS updated & email processed!")
+    print("🎉 SUCCESS: Monologue & 2-Host Podcast episodes generated, RSS updated & email processed!")
     print(f"Feed path: {rss_path}")
     print(f"Feed URL: {base_url.rstrip('/')}/{config.get('feed_filename', 'podcast.xml')}")
     print("=" * 60)

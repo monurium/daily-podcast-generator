@@ -99,6 +99,49 @@ class ContentGenerator:
             "bulletin_summary": summary_bulletin
         }
 
+    def generate_dialogue_script(self, raw_news_context: str) -> Dict[str, Any]:
+        """Generates a lively 2-host podcast conversation script (Alex & Sarah) targeting 1200-1400 words."""
+        print("🤖 Prompting DeepSeek-V3 for a 2-host conversational news podcast script...")
+
+        system_prompt = (
+            "You are a top-tier podcast producer and English language educator. "
+            "Your task is to write a dynamic, engaging 2-host daily news podcast conversation script for intermediate (B2) learners.\n\n"
+            "CRITICAL MANDATES:\n"
+            "1. HOST ROLES: The co-hosts are Alex (Host A - energetic interviewer) and Sarah (Host B - knowledgeable articulate expert).\n"
+            "2. FORMAT: Format the conversation strictly line-by-line using speaker labels: 'Alex: ...' and 'Sarah: ...'.\n"
+            "3. TARGET LENGTH: WRITE BETWEEN 1200 AND 1400 WORDS TOTAL for an optimal 6.5-7.5 minute spoken audio duration.\n"
+            "4. GREETING & INTRO: Start immediately with a friendly greeting between Alex and Sarah. NO formal course intros.\n"
+            "5. NO B2 LEVEL MENTIONS: Never say 'B2 level' or 'for B2 learners' in the script.\n"
+            "6. CONTENT: Discuss 5-6 intriguing tech and global news stories from the context with lively back-and-forth banter, reactions, and clear explanations of key concepts.\n"
+            "7. NO SPECIAL CHARACTERS: Write clean sentences without markdown formatting like asterisks or brackets."
+        )
+
+        user_prompt = (
+            f"Here is today's raw news context:\n\n{raw_news_context}\n\n"
+            "Generate a 2-host daily news podcast conversation script (Alex & Sarah) covering the top stories in interactive detail."
+        )
+
+        response = self.client.chat.completions.create(
+            model="deepseek-chat",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.65,
+            max_tokens=4096
+        )
+
+        full_content = response.choices[0].message.content.strip()
+        title = f"Daily News Podcast (Co-Hosts) - {datetime.date.today().strftime('%B %d, %Y')}"
+        summary_bulletin = self._format_bulletin_summary(full_content)
+
+        return {
+            "title": title,
+            "script": full_content,
+            "summary": "Dual-host conversational technology and global news podcast for English learners.",
+            "bulletin_summary": summary_bulletin
+        }
+
     def _format_bulletin_summary(self, script_text: str) -> str:
         """Formats the script into an attractive HTML email summary block."""
         paragraphs = [p.strip() for p in script_text.split("\n\n") if p.strip()]

@@ -126,6 +126,70 @@ class AudioGenerator:
             print(f"⚠️ Google AI Studio error ({e}). Falling back to Edge-TTS backup.")
             return False, 0
 
+    def _generate_gemini_dialogue_audio(self, dialogue_script: str, output_path: str) -> Tuple[bool, int]:
+        """Synthesizes high-realism 2-host podcast conversation using Google AI Studio gemini-2.5-flash-preview-tts."""
+        if not self.gemini_api_key:
+            print("ℹ️ No GEMINI_API_KEY set. Using Edge-TTS backup engine for dialogue.")
+            return False, 0
+
+        print("✨ Synthesizing 2-host podcast conversation via Google AI Studio (Co-Hosts: Alex & Sarah)...")
+        candidate_models = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"]
+        
+        try:
+            from google import genai
+            from google.genai import types
+
+            client = genai.Client(api_key=self.gemini_api_key)
+
+            prompt = (
+                "You are producing a highly engaging, articulate 2-host daily news podcast.\n"
+                "The conversation features two natural co-hosts: Alex (energetic interviewer) and Sarah (knowledgeable articulate expert).\n"
+                "Perform the following dialogue script with distinct vocal expressions for Alex and Sarah, realistic flow, and warm podcast audio dynamics:\n\n"
+                f"{dialogue_script}"
+            )
+
+            config = types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                speech_config=types.SpeechConfig(
+                    voice_config=types.VoiceConfig(
+                        prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                            voice_name="Aoede"
+                        )
+                    )
+                )
+            )
+
+            for model_name in candidate_models:
+                try:
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=prompt,
+                        config=config
+                    )
+
+                    if response.candidates and response.candidates[0].content.parts:
+                        for part in response.candidates[0].content.parts:
+                            if hasattr(part, "inline_data") and part.inline_data:
+                                pcm_data = part.inline_data.data
+                                audio_bytes = raw_pcm_to_mp3_bytes(pcm_data)
+                                
+                                os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
+                                with open(output_path, "wb") as f:
+                                    f.write(audio_bytes)
+                                
+                                file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
+                                duration_sec = max(30, int(len(pcm_data) / 48000))
+                                print(f"🎉 2-Host Podcast MP3 audio generated successfully via model '{model_name}': {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
+                                return True, duration_sec
+                except Exception as model_err:
+                    print(f"⚠️ Model '{model_name}' dialogue attempt failed: {model_err}")
+
+            return False, 0
+
+        except Exception as e:
+            print(f"⚠️ Google AI Studio dialogue error ({e}). Falling back to Edge-TTS backup.")
+            return False, 0
+
     async def _synthesize_sentence_edge(self, index: int, text: str, output_dir: str) -> str:
         """Synthesizes a single sentence with Edge-TTS, safely handling exceptions per chunk."""
         import edge_tts
@@ -204,6 +268,28 @@ class AudioGenerator:
         if not audio_created:
             asyncio.run(self.build_audio_monologue_edge(script_text, output_path))
             words = len(script_text.split())
+            duration_seconds = max(30, int((words / 130.0) * 60))
+
+        file_size = os.path.getsize(output_path) if os.path.exists(output_path) else 0
+
+        return {
+            "file_path": output_path,
+            "file_size": file_size,
+            "duration_seconds": duration_seconds,
+            "duration_formatted": f"{duration_seconds // 3600:02d}:{(duration_seconds % 3600) // 60:02d}:{duration_seconds % 60:02d}"
+        }
+
+    def dialogue_to_audio(self, dialogue_script: str, output_path: str) -> Dict[str, Any]:
+        """Synthesizes a 2-host podcast conversation to MP3, trying Google AI Studio first then Edge-TTS backup."""
+        audio_created = False
+        duration_seconds = 0
+
+        if self.gemini_api_key:
+            audio_created, duration_seconds = self._generate_gemini_dialogue_audio(dialogue_script, output_path)
+
+        if not audio_created:
+            asyncio.run(self.build_audio_monologue_edge(dialogue_script, output_path))
+            words = len(dialogue_script.split())
             duration_seconds = max(30, int((words / 130.0) * 60))
 
         file_size = os.path.getsize(output_path) if os.path.exists(output_path) else 0
