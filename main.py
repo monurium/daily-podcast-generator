@@ -106,7 +106,7 @@ def run_daily_podcast_pipeline(test_mode: bool = False):
 
     try:
         dialogue_audio_meta = audio_gen.dialogue_to_audio(dialogue_script_data["script"], temp_dialogue_path)
-        dialogue_episode_meta = {
+        all_episodes = publisher.add_episode({
             "id": dialogue_episode_id,
             "title": dialogue_script_data["title"],
             "summary": dialogue_script_data["summary"],
@@ -115,14 +115,13 @@ def run_daily_podcast_pipeline(test_mode: bool = False):
             "pub_date": pub_date,
             "file_size": dialogue_audio_meta["file_size"],
             "duration_formatted": dialogue_audio_meta["duration_formatted"]
-        }
-        all_episodes = publisher.add_episode(dialogue_episode_meta, temp_dialogue_path, base_url)
+        }, temp_dialogue_path, base_url)
     except Exception as dialogue_err:
         print(f"⚠️ Primary Dialogue Podcast synthesis failed ({dialogue_err}). Falling back to Monologue Backup...")
         mono_episode_id = f"ep_{today_str}_mono_{uuid.uuid4().hex[:6]}"
         temp_mono_path = os.path.join("output", "temp", f"{mono_episode_id}.mp3")
         mono_audio_meta = audio_gen.text_to_audio(script_data["script"], temp_mono_path)
-        mono_episode_meta = {
+        all_episodes = publisher.add_episode({
             "id": mono_episode_id,
             "title": script_data["title"],
             "summary": script_data["summary"],
@@ -131,8 +130,7 @@ def run_daily_podcast_pipeline(test_mode: bool = False):
             "pub_date": pub_date,
             "file_size": mono_audio_meta["file_size"],
             "duration_formatted": mono_audio_meta["duration_formatted"]
-        }
-        all_episodes = publisher.add_episode(mono_episode_meta, temp_mono_path, base_url)
+        }, temp_mono_path, base_url)
 
 
     # 4. RSS XML Feed Generation for Spotify & Apple Podcasts

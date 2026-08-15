@@ -1,137 +1,52 @@
 import os
 import re
-import struct
 import asyncio
 import time
+import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, Any, List, Tuple
 
 DEFAULT_EDGE_VOICE = "en-US-AndrewNeural"
+GEMINI_TTS_MODELS = ("gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts", "gemini-2.0-flash")
+GEMINI_VOICE_MAP = {"Alex": "Puck", "Sarah": "Aoede"}
+EDGE_VOICE_MAP = {"Alex": "en-US-ChristopherNeural", "Sarah": "en-US-AvaNeural"}
 
 def raw_pcm_to_mp3_bytes(pcm_bytes: bytes, sample_rate: int = 24000, num_channels: int = 1, bitrate: int = 64) -> bytes:
     """Encodes raw 24kHz 16-bit PCM audio bytes from Google AI Studio into compressed MP3 format using lameenc."""
-    try:
-        import lameenc
-        encoder = lameenc.Encoder()
-        encoder.set_bit_rate(bitrate)
-        encoder.set_in_sample_rate(sample_rate)
-        encoder.set_channels(num_channels)
-        encoder.set_quality(2)
-        return encoder.encode(pcm_bytes) + encoder.flush()
-    except Exception as e:
-        print(f"⚠️ lameenc MP3 encoding failed ({e}). Falling back to uncompressed WAV format.")
-        return raw_pcm_to_wav_bytes(pcm_bytes, sample_rate, num_channels)
-
-def raw_pcm_to_wav_bytes(pcm_bytes: bytes, sample_rate: int = 24000, num_channels: int = 1, bits_per_sample: int = 16) -> bytes:
-    """Wraps raw 24kHz 16-bit PCM audio bytes from Google AI Studio into a standard, fully-playable RIFF WAV format."""
-    if pcm_bytes.startswith(b'RIFF'):
-        return pcm_bytes
-        
-    byte_rate = sample_rate * num_channels * (bits_per_sample // 8)
-    block_align = num_channels * (bits_per_sample // 8)
-    data_size = len(pcm_bytes)
-    chunk_size = 36 + data_size
-
-    header = struct.pack(
-        '<4sI4s4sIHHIIHH4sI',
-        b'RIFF',
-        chunk_size,
-        b'WAVE',
-        b'fmt ',
-        16,
-        1,
-        num_channels,
-        sample_rate,
-        byte_rate,
-        block_align,
-        bits_per_sample,
-        b'data',
-        data_size
-    )
-    return header + pcm_bytes
+    import lameenc
+    encoder = lameenc.Encoder()
+    encoder.set_bit_rate(bitrate)
+    encoder.set_in_sample_rate(sample_rate)
+    encoder.set_channels(num_channels)
+    encoder.set_quality(2)
+    return encoder.encode(pcm_bytes) + encoder.flush()
 
 def generate_silent_mp3_bytes(duration_ms: int = 600) -> bytes:
-    """Generates a clean silent MP3 frame buffer of specified millisecond duration for Edge-TTS backup."""
+    """Generates a clean silent MP3 frame buffer of specified millisecond duration."""
     num_frames = max(1, int(duration_ms / 100))
     silent_frame = b'\xff\xfb\x90\xc4' + b'\x00' * 413
     return silent_frame * num_frames
 
 class AudioGenerator:
-    """Dual-Engine Audio Generator: Primary Google AI Studio (gemini-2.5-flash-preview-tts) with Edge-TTS backup."""
+    """Dual-Engine Audio Generator: Primary Google AI Studio (Gemini 2.5 TTS) with Edge-TTS backup."""
 
     def __init__(self, edge_voice: str = DEFAULT_EDGE_VOICE):
         self.edge_voice = edge_voice
         self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
-    def _generate_gemini_audio(self, script_text: str, output_path: str) -> Tuple[bool, int]:
-        """Synthesizes high-realism lively native audio using Google AI Studio gemini-2.5-flash-preview-tts with Aoede voice."""
-        if not self.gemini_api_key:
-            print("ℹ️ No GEMINI_API_KEY set. Using Edge-TTS backup engine.")
-            return False, 0
-
-        print("✨ Synthesizing lively native audio via Google AI Studio (Voice: Aoede)...")
-        candidate_models = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts", "gemini-2.0-flash"]
-        
-        try:
-            from google import genai
-            from google.genai import types
-
-            client = genai.Client(api_key=self.gemini_api_key)
-
-            prompt = (
-                "You are an enthusiastic, clear, lively, and articulate daily news podcast host. "
-                "Narrate the following news script with clear vocal dynamics, engaging rhythm, natural pauses after sentences, "
-                "and a warm, energetic presentation style so listeners can follow effortlessly:\n\n"
-                f"{script_text}"
-            )
-
-            config = types.GenerateContentConfig(
-                response_modalities=["AUDIO"],
-                speech_config=types.SpeechConfig(
-                    voice_config=types.VoiceConfig(
-                        prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                            voice_name="Aoede"
-                        )
-                    )
-                )
-            )
-
-            for model_name in candidate_models:
-                try:
-                    response = client.models.generate_content(
-                        model=model_name,
-                        contents=prompt,
-                        config=config
-                    )
-
-                    if response.candidates and response.candidates[0].content.parts:
-                        for part in response.candidates[0].content.parts:
-                            if hasattr(part, "inline_data") and part.inline_data:
-                                pcm_data = part.inline_data.data
-                                audio_bytes = raw_pcm_to_mp3_bytes(pcm_data)
-                                
-                                os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
-                                with open(output_path, "wb") as f:
-                                    f.write(audio_bytes)
-                                
-                                file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
-                                duration_sec = max(30, int(len(pcm_data) / 48000))
-                                print(f"🎉 Google AI Studio MP3 audio generated successfully via model '{model_name}': {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
-                                return True, duration_sec
-                except Exception as model_err:
-                    print(f"⚠️ Model '{model_name}' attempt failed: {model_err}")
-
-            print("⚠️ Google AI Studio models unavailable. Falling back to Edge-TTS backup.")
-            return False, 0
-
-        except Exception as e:
-            print(f"⚠️ Google AI Studio error ({e}). Falling back to Edge-TTS backup.")
-            return False, 0
+    def _build_audio_metadata(self, output_path: str, duration_seconds: int) -> Dict[str, Any]:
+        """Constructs standardized audio metadata response dictionary."""
+        file_size = os.path.getsize(output_path) if os.path.exists(output_path) else 0
+        return {
+            "file_path": output_path,
+            "file_size": file_size,
+            "duration_seconds": duration_seconds,
+            "duration_formatted": f"{duration_seconds // 3600:02d}:{(duration_seconds % 3600) // 60:02d}:{duration_seconds % 60:02d}"
+        }
 
     def _parse_dialogue_turns(self, script_text: str) -> List[Tuple[str, str]]:
-        """Parses script lines into (speaker_name, text) pairs."""
+        """Parses script lines into clean (speaker_name, text) pairs."""
         turns: List[Tuple[str, str]] = []
-        
         for line in script_text.splitlines():
             line_str = line.strip()
             if not line_str:
@@ -143,203 +58,266 @@ class AudioGenerator:
             else:
                 if turns:
                     prev_speaker, prev_text = turns[-1]
-                    turns[-1] = (prev_speaker, prev_text + " " + line_str)
+                    turns[-1] = (prev_speaker, f"{prev_text} {line_str}")
                 else:
                     turns.append(("Alex", line_str))
         return turns
 
-    def _generate_gemini_dialogue_audio(self, dialogue_script: str, output_path: str) -> Tuple[bool, int]:
-        """Synthesizes high-realism 2-host podcast conversation with distinct Male (Alex) and Female (Sarah) voices using Google AI Studio in parallel."""
+    def _generate_gemini_audio(self, script_text: str, output_path: str) -> Tuple[bool, int]:
+        """Synthesizes single-narrator audio using Google AI Studio with Aoede voice."""
         if not self.gemini_api_key:
-            print("ℹ️ No GEMINI_API_KEY set. Using Edge-TTS backup engine for dialogue.")
+            print("ℹ️ No GEMINI_API_KEY set. Using Edge-TTS backup engine.")
             return False, 0
 
-        print("✨ Synthesizing 2-host podcast conversation via Google AI Studio (Alex: Male [Puck], Sarah: Female [Aoede])...")
-        candidate_models = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts", "gemini-2.0-flash"]
+        print("✨ Synthesizing lively native audio via Google AI Studio (Voice: Aoede)...")
+        try:
+            from google import genai
+            from google.genai import types
+
+            client = genai.Client(api_key=self.gemini_api_key)
+            prompt = (
+                "You are an enthusiastic, clear, lively, and articulate daily news podcast host. "
+                "Narrate the following news script with clear vocal dynamics, natural pauses, "
+                "and a warm, energetic presentation style:\n\n"
+                f"{script_text}"
+            )
+            config = types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                speech_config=types.SpeechConfig(
+                    voice_config=types.VoiceConfig(
+                        prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Aoede")
+                    )
+                )
+            )
+
+            for model_name in GEMINI_TTS_MODELS:
+                try:
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=prompt,
+                        config=config
+                    )
+                    if response.candidates and response.candidates[0].content.parts:
+                        for part in response.candidates[0].content.parts:
+                            if hasattr(part, "inline_data") and part.inline_data:
+                                pcm_data = part.inline_data.data
+                                audio_bytes = raw_pcm_to_mp3_bytes(pcm_data)
+                                os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
+                                with open(output_path, "wb") as f:
+                                    f.write(audio_bytes)
+                                
+                                file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
+                                duration_sec = max(30, int(len(pcm_data) / 48000))
+                                print(f"🎉 Google AI Studio audio generated via '{model_name}': {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
+                                return True, duration_sec
+                except Exception as model_err:
+                    print(f"⚠️ Model '{model_name}' attempt failed: {model_err}")
+
+            return False, 0
+        except Exception as e:
+            print(f"⚠️ Google AI Studio error ({e}).")
+            return False, 0
+
+    def _generate_gemini_dialogue_audio(self, dialogue_script: str, output_path: str) -> Tuple[bool, int]:
+        """Synthesizes 2-host podcast conversation (Alex: Puck, Sarah: Aoede) using Google AI Studio in parallel."""
+        if not self.gemini_api_key:
+            return False, 0
+
         turns = self._parse_dialogue_turns(dialogue_script)
-        
-        if not turns:
+        valid_turns = [(idx, speaker, re.sub(r'\[.*?\]|\(.*?\)', '', text).strip()) for idx, (speaker, text) in enumerate(turns) if re.sub(r'\[.*?\]|\(.*?\)', '', text).strip()]
+        if not valid_turns:
             return False, 0
 
+        print(f"✨ Synthesizing 2-host dialogue via Google AI Studio ({len(valid_turns)} turns in parallel)...")
         try:
             from google import genai
             from google.genai import types
 
             client = genai.Client(api_key=self.gemini_api_key)
             pause_bytes = generate_silent_mp3_bytes(450)
-
-            base_dir = os.path.dirname(output_path) if os.path.dirname(output_path) else "."
-            os.makedirs(base_dir, exist_ok=True)
-            
-            # Male voice for Alex, Female voice for Sarah
-            voice_map = {
-                "Alex": "Puck",     # Deep, energetic male voice
-                "Sarah": "Aoede"    # Articulate, polished female voice
-            }
-
-            valid_turns = []
-            for idx, (speaker, text) in enumerate(turns):
-                clean_text = re.sub(r'\[.*?\]|\(.*?\)', '', text).strip()
-                if clean_text:
-                    valid_turns.append((idx, speaker, clean_text))
-
-            if not valid_turns:
-                return False, 0
-
             temp_turn_results = {}
 
-            def _synth_single_turn(turn_data):
-                idx, speaker, clean_text = turn_data
-                voice_name = voice_map.get(speaker, "Puck" if speaker == "Alex" else "Aoede")
-                config = types.GenerateContentConfig(
-                    response_modalities=["AUDIO"],
-                    speech_config=types.SpeechConfig(
-                        voice_config=types.VoiceConfig(
-                            prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                                voice_name=voice_name
+            with tempfile.TemporaryDirectory() as temp_dir:
+                def _synth_turn(t_item):
+                    idx, speaker, clean_text = t_item
+                    voice_name = GEMINI_VOICE_MAP.get(speaker, "Puck" if speaker == "Alex" else "Aoede")
+                    config = types.GenerateContentConfig(
+                        response_modalities=["AUDIO"],
+                        speech_config=types.SpeechConfig(
+                            voice_config=types.VoiceConfig(
+                                prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=voice_name)
                             )
                         )
                     )
-                )
-                turn_prompt = f"Speak clearly as a podcast co-host: {clean_text}"
-                temp_file = os.path.join(base_dir, f"gemini_turn_{idx:04d}.mp3")
+                    turn_prompt = f"Speak clearly as a podcast co-host: {clean_text}"
+                    t_file = os.path.join(temp_dir, f"turn_{idx:04d}.mp3")
 
-                for model_name in candidate_models:
-                    for attempt in range(2):
-                        try:
-                            response = client.models.generate_content(
-                                model=model_name,
-                                contents=turn_prompt,
-                                config=config
-                            )
-                            if response.candidates and response.candidates[0].content.parts:
-                                for part in response.candidates[0].content.parts:
-                                    if hasattr(part, "inline_data") and part.inline_data:
-                                        pcm_chunk = part.inline_data.data
-                                        mp3_chunk = raw_pcm_to_mp3_bytes(pcm_chunk)
-                                        with open(temp_file, "wb") as f:
-                                            f.write(mp3_chunk)
-                                        return idx, temp_file
-                        except Exception as turn_err:
-                            err_str = str(turn_err)
-                            if "limit: 0" in err_str:
-                                # Model not accessible on current tier, skip to next model
-                                break
-                            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
-                                time.sleep(1.5 * (attempt + 1))
-                            else:
-                                break
-                return idx, None
+                    for model_name in GEMINI_TTS_MODELS:
+                        for attempt in range(2):
+                            try:
+                                response = client.models.generate_content(
+                                    model=model_name,
+                                    contents=turn_prompt,
+                                    config=config
+                                )
+                                if response.candidates and response.candidates[0].content.parts:
+                                    for part in response.candidates[0].content.parts:
+                                        if hasattr(part, "inline_data") and part.inline_data:
+                                            pcm_chunk = part.inline_data.data
+                                            mp3_chunk = raw_pcm_to_mp3_bytes(pcm_chunk)
+                                            with open(t_file, "wb") as f:
+                                                f.write(mp3_chunk)
+                                            return idx, t_file
+                            except Exception as err:
+                                if "limit: 0" in str(err):
+                                    break
+                                if "429" in str(err) or "RESOURCE_EXHAUSTED" in str(err):
+                                    time.sleep(1.5 * (attempt + 1))
+                                else:
+                                    break
+                    return idx, None
 
-            # Fast parallel execution across turns
-            with ThreadPoolExecutor(max_workers=4) as executor:
-                futures = {executor.submit(_synth_single_turn, t): t for t in valid_turns}
-                for f in as_completed(futures):
-                    t_idx, t_file = f.result()
-                    if t_file and os.path.exists(t_file):
-                        temp_turn_results[t_idx] = t_file
+                with ThreadPoolExecutor(max_workers=4) as executor:
+                    futures = {executor.submit(_synth_turn, item): item for item in valid_turns}
+                    for f in as_completed(futures):
+                        t_idx, t_file = f.result()
+                        if t_file and os.path.exists(t_file):
+                            temp_turn_results[t_idx] = t_file
 
-            if len(temp_turn_results) >= int(len(valid_turns) * 0.8):
-                with open(output_path, "wb") as outfile:
-                    for idx in sorted(temp_turn_results.keys()):
-                        t_file = temp_turn_results[idx]
-                        if os.path.exists(t_file):
-                            with open(t_file, "rb") as infile:
+                if len(temp_turn_results) >= int(len(valid_turns) * 0.8):
+                    os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
+                    with open(output_path, "wb") as outfile:
+                        for idx in sorted(temp_turn_results.keys()):
+                            t_path = temp_turn_results[idx]
+                            with open(t_path, "rb") as infile:
                                 outfile.write(infile.read())
                             outfile.write(pause_bytes)
-                            try:
-                                os.remove(t_file)
-                            except OSError:
-                                pass
 
-                file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
-                words = len(dialogue_script.split())
-                duration_sec = max(30, int((words / 130.0) * 60))
-                print(f"🎉 2-Host Male & Female Podcast MP3 audio generated successfully via Gemini ({len(temp_turn_results)}/{len(valid_turns)} turns): {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
-                return True, duration_sec
-            else:
-                print(f"⚠️ Gemini TTS multi-turn completed {len(temp_turn_results)}/{len(valid_turns)} turns.")
-                for t_file in temp_turn_results.values():
-                    if os.path.exists(t_file):
-                        try:
-                            os.remove(t_file)
-                        except OSError:
-                            pass
-                return False, 0
+                    file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
+                    words = len(dialogue_script.split())
+                    duration_sec = max(30, int((words / 130.0) * 60))
+                    print(f"🎉 2-Host Podcast MP3 generated successfully via Gemini ({len(temp_turn_results)}/{len(valid_turns)} turns): {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
+                    return True, duration_sec
+                else:
+                    print(f"⚠️ Gemini TTS multi-turn completed {len(temp_turn_results)}/{len(valid_turns)} turns.")
+                    return False, 0
 
         except Exception as e:
             print(f"⚠️ Google AI Studio dialogue error ({e}).")
             return False, 0
 
-    async def _synthesize_sentence_edge(self, index: int, text: str, output_dir: str) -> str:
-        """Synthesizes a single sentence with Edge-TTS, safely handling exceptions per chunk."""
-        import edge_tts
-
-        temp_file = os.path.join(output_dir, f"part_{index:04d}.mp3")
-        try:
-            communicate = edge_tts.Communicate(text, self.edge_voice, rate="-3%", pitch="+0Hz")
-            await communicate.save(temp_file)
-            return temp_file
-        except Exception:
-            return ""
-
     async def build_audio_monologue_edge(self, script_text: str, output_mp3: str) -> str:
-        """Fallback Edge-TTS audio generator with sentence-by-sentence pitch contours and silence breaks."""
+        """Fallback Edge-TTS audio generator with sentence-by-sentence pitch contours."""
+        import edge_tts
         print(f"🎙️ Using Edge-TTS backup engine with voice '{self.edge_voice}'...")
         
         paragraphs = [p.strip() for p in script_text.strip().split("\n\n") if p.strip()]
-        all_sentence_tasks = []
-        sentence_map = []
-        
         base_dir = os.path.dirname(output_mp3) if os.path.dirname(output_mp3) else "."
         os.makedirs(base_dir, exist_ok=True)
-        
-        global_idx = 0
-        for para in paragraphs:
-            clean_para = re.sub(r'\[.*?\]|\(.*?\)', '', para).strip()
-            sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', clean_para) if s.strip()]
-            
-            for s_idx, sentence in enumerate(sentences):
-                alphanumeric_chars = re.sub(r'[^a-zA-Z0-9]', '', sentence)
-                if len(alphanumeric_chars) >= 2:
-                    is_last_in_para = (s_idx == len(sentences) - 1)
-                    sentence_map.append((global_idx, is_last_in_para))
-                    all_sentence_tasks.append(self._synthesize_sentence_edge(global_idx, sentence, base_dir))
-                    global_idx += 1
 
-        if not all_sentence_tasks:
-            raise ValueError("Script text contains no valid non-empty sentences for audio synthesis.")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            tasks = []
+            sentence_map = []
+            global_idx = 0
 
-        temp_files = await asyncio.gather(*all_sentence_tasks)
+            for para in paragraphs:
+                clean_para = re.sub(r'\[.*?\]|\(.*?\)', '', para).strip()
+                sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', clean_para) if s.strip()]
+                for s_idx, sentence in enumerate(sentences):
+                    if len(re.sub(r'[^a-zA-Z0-9]', '', sentence)) >= 2:
+                        is_last = (s_idx == len(sentences) - 1)
+                        sentence_map.append((global_idx, is_last))
+                        t_path = os.path.join(temp_dir, f"mono_{global_idx:04d}.mp3")
+                        
+                        async def _synth_sentence(t=sentence, p=t_path):
+                            try:
+                                comm = edge_tts.Communicate(t, self.edge_voice, rate="-3%", pitch="+0Hz")
+                                await comm.save(p)
+                                return p
+                            except Exception:
+                                return ""
+                        
+                        tasks.append(_synth_sentence())
+                        global_idx += 1
 
-        short_pause_bytes = generate_silent_mp3_bytes(650)
-        long_pause_bytes = generate_silent_mp3_bytes(1400)
+            if not tasks:
+                raise ValueError("Script text contains no valid sentences for audio synthesis.")
 
-        try:
+            temp_files = await asyncio.gather(*tasks)
+            short_pause = generate_silent_mp3_bytes(650)
+            long_pause = generate_silent_mp3_bytes(1400)
+
             with open(output_mp3, 'wb') as outfile:
                 for idx, fname in enumerate(temp_files):
                     if fname and os.path.exists(fname):
                         with open(fname, 'rb') as infile:
                             outfile.write(infile.read())
-                        
                         is_para_end = sentence_map[idx][1] if idx < len(sentence_map) else False
-                        if is_para_end:
-                            outfile.write(long_pause_bytes)
-                        else:
-                            outfile.write(short_pause_bytes)
-        finally:
-            for fname in temp_files:
-                if fname and os.path.exists(fname):
-                    try:
-                        os.remove(fname)
-                    except OSError:
-                        pass
+                        outfile.write(long_pause if is_para_end else short_pause)
 
-        print(f"🎉 Edge-TTS audio generated successfully: {output_mp3}")
+        print(f"🎉 Edge-TTS monologue audio generated successfully: {output_mp3}")
         return output_mp3
 
+    async def build_audio_dialogue_edge(self, dialogue_script: str, output_mp3: str) -> str:
+        """Fallback Edge-TTS audio generator for 2-host dialogue (Alex: Christopher, Sarah: Ava)."""
+        import edge_tts
+        print("🎙️ Synthesizing 2-Host Dialogue via Edge-TTS (Alex: Male [Christopher], Sarah: Female [Ava])...")
+        turns = self._parse_dialogue_turns(dialogue_script)
+        base_dir = os.path.dirname(output_mp3) if os.path.dirname(output_mp3) else "."
+        os.makedirs(base_dir, exist_ok=True)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            tasks = []
+            for idx, (speaker, text) in enumerate(turns):
+                clean_text = re.sub(r'\[.*?\]|\(.*?\)', '', text).strip()
+                if not clean_text:
+                    continue
+                voice = EDGE_VOICE_MAP.get(speaker, "en-US-ChristopherNeural" if speaker == "Alex" else "en-US-AvaNeural")
+                temp_file = os.path.join(temp_dir, f"edge_turn_{idx:04d}.mp3")
+
+                async def _synth(v=voice, t=clean_text, f=temp_file):
+                    try:
+                        comm = edge_tts.Communicate(t, v, rate="-2%")
+                        await comm.save(f)
+                        return f
+                    except Exception as ex:
+                        print(f"Warning: failed edge synth turn {f}: {ex}")
+                        return ""
+
+                tasks.append(_synth())
+
+            temp_files = await asyncio.gather(*tasks)
+            pause_bytes = generate_silent_mp3_bytes(500)
+
+            with open(output_mp3, 'wb') as outfile:
+                for fname in temp_files:
+                    if fname and os.path.exists(fname):
+                        with open(fname, 'rb') as infile:
+                            outfile.write(infile.read())
+                        outfile.write(pause_bytes)
+
+        return output_mp3
+
+    def dialogue_to_audio(self, dialogue_script: str, output_path: str) -> Dict[str, Any]:
+        """Synthesizes 2-host podcast conversation to MP3 with multi-level fallbacks."""
+        audio_created = False
+        duration_seconds = 0
+
+        if self.gemini_api_key:
+            audio_created, duration_seconds = self._generate_gemini_dialogue_audio(dialogue_script, output_path)
+            if not audio_created:
+                print("✨ Trying Single-Call Google AI Studio Podcast Narrator (1 API request)...")
+                audio_created, duration_seconds = self._generate_gemini_audio(dialogue_script, output_path)
+
+        if not audio_created:
+            asyncio.run(self.build_audio_dialogue_edge(dialogue_script, output_path))
+            words = len(dialogue_script.split())
+            duration_seconds = max(30, int((words / 130.0) * 60))
+
+        return self._build_audio_metadata(output_path, duration_seconds)
+
     def text_to_audio(self, script_text: str, output_path: str) -> Dict[str, Any]:
-        """Dual-engine runner: tries Google AI Studio first, falls back to Edge-TTS."""
+        """Synthesizes monologue podcast to MP3."""
         audio_created = False
         duration_seconds = 0
 
@@ -351,86 +329,4 @@ class AudioGenerator:
             words = len(script_text.split())
             duration_seconds = max(30, int((words / 130.0) * 60))
 
-        file_size = os.path.getsize(output_path) if os.path.exists(output_path) else 0
-
-        return {
-            "file_path": output_path,
-            "file_size": file_size,
-            "duration_seconds": duration_seconds,
-            "duration_formatted": f"{duration_seconds // 3600:02d}:{(duration_seconds % 3600) // 60:02d}:{duration_seconds % 60:02d}"
-        }
-
-    async def build_audio_dialogue_edge(self, dialogue_script: str, output_mp3: str) -> str:
-        """Fallback Edge-TTS audio generator for 2-host dialogue (Alex: Male en-US-ChristopherNeural, Sarah: Female en-US-AvaNeural)."""
-        import edge_tts
-        print("🎙️ Synthesizing 2-Host Dialogue via Edge-TTS (Alex: Male [Christopher], Sarah: Female [Ava])...")
-        turns = self._parse_dialogue_turns(dialogue_script)
-        
-        base_dir = os.path.dirname(output_mp3) if os.path.dirname(output_mp3) else "."
-        os.makedirs(base_dir, exist_ok=True)
-        
-        tasks = []
-        for idx, (speaker, text) in enumerate(turns):
-            clean_text = re.sub(r'\[.*?\]|\(.*?\)', '', text).strip()
-            if not clean_text:
-                continue
-            voice = "en-US-ChristopherNeural" if speaker == "Alex" else "en-US-AvaNeural"
-            temp_file = os.path.join(base_dir, f"edge_turn_{idx:04d}.mp3")
-            
-            async def _synth(v=voice, t=clean_text, f=temp_file):
-                try:
-                    comm = edge_tts.Communicate(t, v, rate="-2%")
-                    await comm.save(f)
-                    return f
-                except Exception as ex:
-                    print(f"Warning: failed edge synth turn {f}: {ex}")
-                    return ""
-            
-            tasks.append(_synth())
-
-        temp_files = await asyncio.gather(*tasks)
-        pause_bytes = generate_silent_mp3_bytes(500)
-        
-        try:
-            with open(output_mp3, 'wb') as outfile:
-                for fname in temp_files:
-                    if fname and os.path.exists(fname):
-                        with open(fname, 'rb') as infile:
-                            outfile.write(infile.read())
-                        outfile.write(pause_bytes)
-        finally:
-            for fname in temp_files:
-                if fname and os.path.exists(fname):
-                    try:
-                        os.remove(fname)
-                    except OSError:
-                        pass
-        return output_mp3
-
-    def dialogue_to_audio(self, dialogue_script: str, output_path: str) -> Dict[str, Any]:
-        """Synthesizes a 2-host podcast conversation to MP3, trying Google AI Studio multi-turn first, then Single-Call Google AI Narrator, then Edge-TTS backup."""
-        audio_created = False
-        duration_seconds = 0
-
-        if self.gemini_api_key:
-            # 1. Try 2-Host Multi-Turn Google AI Studio Podcast
-            audio_created, duration_seconds = self._generate_gemini_dialogue_audio(dialogue_script, output_path)
-            
-            # 2. If multi-turn hit rate limits, try Single-Call Google AI Studio Narrator (1 API call)
-            if not audio_created:
-                print("✨ Trying Single-Call Google AI Studio Podcast Narrator (1 API request)...")
-                audio_created, duration_seconds = self._generate_gemini_audio(dialogue_script, output_path)
-
-        if not audio_created:
-            asyncio.run(self.build_audio_dialogue_edge(dialogue_script, output_path))
-            words = len(dialogue_script.split())
-            duration_seconds = max(30, int((words / 130.0) * 60))
-
-        file_size = os.path.getsize(output_path) if os.path.exists(output_path) else 0
-
-        return {
-            "file_path": output_path,
-            "file_size": file_size,
-            "duration_seconds": duration_seconds,
-            "duration_formatted": f"{duration_seconds // 3600:02d}:{(duration_seconds % 3600) // 60:02d}:{duration_seconds % 60:02d}"
-        }
+        return self._build_audio_metadata(output_path, duration_seconds)
