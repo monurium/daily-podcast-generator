@@ -10,11 +10,16 @@ from src.rss_builder import RSSBuilder
 from src.publisher import Publisher
 from src.email_sender import EmailSender
 
+import argparse
+
 load_dotenv()
 
-def run_daily_podcast_pipeline():
+def run_daily_podcast_pipeline(test_mode: bool = False):
     print("=" * 60)
-    print("🎙️ Starting B2 English Daily News Podcast Generation Pipeline")
+    if test_mode:
+        print("🧪 RUNNING IN TEST / DRY-RUN MODE (Spotify & RSS will NOT be updated)")
+    else:
+        print("🎙️ Starting AI Pulse Daily Podcast Generation & Publishing Pipeline")
     print("=" * 60)
 
     # 1. Load Configurations
@@ -26,13 +31,13 @@ def run_daily_podcast_pipeline():
     output_dir = config.get("output_dir", "dist")
 
     # 2. Fetch Fresh News & Generate Script via DeepSeek
-    print("\n[Step 1/5] Fetching latest RSS news (last 24 hours)...")
+    print("\n[Step 1/3] Fetching latest AI & Tech news (last 24 hours)...")
     content_gen = ContentGenerator()
     raw_news = content_gen.fetch_fresh_news(hours_limit=24)
 
     if not raw_news:
         print("⚠️ No fresh news found in the last 24 hours. Using default feed topics.")
-        raw_news = "Global developments in technology, environment, and economy continue to evolve today."
+        raw_news = "Global developments in artificial intelligence, technology, and future innovations."
 
     script_data = content_gen.generate_script(raw_news)
     dialogue_script_data = content_gen.generate_dialogue_script(raw_news)
@@ -50,21 +55,36 @@ def run_daily_podcast_pipeline():
     print(f"📄 Monologue Script saved to: {script_file_path}")
     print(f"📄 Dialogue Script saved to: {dialogue_file_path}")
 
-    # 3. Audio Synthesis (Dual-Engine: Google AI Studio Primary with Edge-TTS Backup)
+    # 3. Audio Synthesis (Alex: Male & Sarah: Female)
     audio_gen = AudioGenerator()
     today_str = datetime.date.today().strftime('%Y%m%d')
     pub_date = datetime.datetime.now(datetime.timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
+
+    if test_mode:
+        print("\n[Step 2/2] 🧪 Synthesizing 2-Host Test Episode (Alex: Male & Sarah: Female)...")
+        test_audio_path = os.path.join("output", "test_dialogue_podcast.mp3")
+        dialogue_audio_meta = audio_gen.dialogue_to_audio(dialogue_script_data["script"], test_audio_path)
+
+        print("\n" + "=" * 60)
+        print("🎉 TEST COMPLETED SUCCESSFULLY!")
+        print(f"📄 Test Script: {dialogue_file_path}")
+        print(f"🎧 Test Audio MP3: {test_audio_path}")
+        print("💡 Spotify & RSS feeds were NOT modified during this test.")
+        print("=" * 60)
+        return
+
+    # --- Production Publishing Mode ---
     publisher = Publisher(output_dir=output_dir)
 
-    # --- 3a. Synthesize Monologue Episode ---
+    # 3a. Synthesize Monologue Episode (Backup)
     mono_episode_id = f"ep_{today_str}_mono_{uuid.uuid4().hex[:6]}"
     temp_mono_path = os.path.join("output", "temp", f"{mono_episode_id}.mp3")
-    print("\n[Step 2a/5] Synthesizing 7-8 min MP3 audio monologue...")
+    print("\n[Step 2a/3] Synthesizing Backup Monologue MP3 audio...")
     mono_audio_meta = audio_gen.text_to_audio(script_data["script"], temp_mono_path)
 
     mono_episode_meta = {
         "id": mono_episode_id,
-        "title": script_data["title"] + " (Monologue)",
+        "title": script_data["title"] + " (Monologue Backup)",
         "summary": script_data["summary"],
         "script": script_data["script"],
         "bulletin_summary": script_data.get("bulletin_summary", script_data["summary"]),
@@ -74,10 +94,10 @@ def run_daily_podcast_pipeline():
     }
     publisher.add_episode(mono_episode_meta, temp_mono_path, base_url)
 
-    # --- 3b. Synthesize 2-Host Dialogue Podcast Episode ---
+    # 3b. Synthesize 2-Host Dialogue Podcast Episode (Primary Main Episode)
     dialogue_episode_id = f"ep_{today_str}_podcast_{uuid.uuid4().hex[:6]}"
     temp_dialogue_path = os.path.join("output", "temp", f"{dialogue_episode_id}.mp3")
-    print("\n[Step 2b/5] Synthesizing 2-Host (Alex & Sarah) MP3 audio podcast conversation...")
+    print("\n[Step 2b/3] Synthesizing Primary 2-Host (Alex: Male & Sarah: Female) MP3 podcast...")
     dialogue_audio_meta = audio_gen.dialogue_to_audio(dialogue_script_data["script"], temp_dialogue_path)
 
     dialogue_episode_meta = {
@@ -92,22 +112,24 @@ def run_daily_podcast_pipeline():
     }
     all_episodes = publisher.add_episode(dialogue_episode_meta, temp_dialogue_path, base_url)
 
-    # 4. RSS XML Feed Generation for Apple Podcasts
-    print("\n[Step 4/5] Updating Apple Podcasts RSS feed (podcast.xml)...")
+    # 4. RSS XML Feed Generation for Spotify & Apple Podcasts
+    print("\n[Step 3/3] Updating Spotify & Apple Podcasts RSS feeds...")
     rss_builder = RSSBuilder(config=config)
-    rss_path = os.path.join(output_dir, config.get("feed_filename", "podcast.xml"))
-    rss_builder.build_feed(all_episodes, rss_path)
-
-    # 5. Optional Email Delivery with Audio Attachment & News Summaries
-    print("\n[Step 5/5] Checking email delivery configuration...")
-    email_sender = EmailSender()
-    email_sender.send_podcast_email(dialogue_episode_meta, temp_dialogue_path)
+    rss_dist_path = os.path.join(output_dir, config.get("feed_filename", "podcast.xml"))
+    rss_root_path = config.get("feed_filename", "podcast.xml")
+    
+    rss_builder.build_feed(all_episodes, rss_dist_path)
+    rss_builder.build_feed(all_episodes, rss_root_path)
 
     print("\n" + "=" * 60)
-    print("🎉 SUCCESS: Monologue & 2-Host Podcast episodes generated, RSS updated & email processed!")
-    print(f"Feed path: {rss_path}")
+    print("🎉 SUCCESS: Podcast episode generated and RSS feeds updated for Spotify!")
+    print(f"Feed path: {rss_root_path}")
     print(f"Feed URL: {base_url.rstrip('/')}/{config.get('feed_filename', 'podcast.xml')}")
     print("=" * 60)
 
 if __name__ == "__main__":
-    run_daily_podcast_pipeline()
+    parser = argparse.ArgumentParser(description="AI Pulse Daily Podcast Pipeline")
+    parser.add_argument("--test", "--dry-run", action="store_true", help="Run in local test mode without updating Spotify/RSS feeds")
+    args = parser.parse_args()
+
+    run_daily_podcast_pipeline(test_mode=args.test)
