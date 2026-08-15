@@ -19,6 +19,26 @@
       <link>https://monurium.github.io/daily-podcast-generator</link>
     </image>
     <item>
+      <title>Daily AI &amp; Tech Podcast (Co-Hosts) - August 15, 2026</title>
+      <description>Dual-host conversational AI and technology news podcast for English learners.</description>
+      <pubDate>Sat, 15 Aug 2026 09:39:44 GMT</pubDate>
+      <guid isPermaLink="false">ep_20260815_podcast_57b72d</guid>
+      <itunes:author>Monurium</itunes:author>
+      <itunes:duration>00:08:35</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+      <enclosure url="https://monurium.github.io/daily-podcast-generator/episodes/ep_20260815_podcast_57b72d.mp3" length="4125696" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Daily Tech &amp; AI Digest - August 15, 2026 (Monologue)</title>
+      <description>Daily Artificial Intelligence and technology news monologue for B2 English learners.</description>
+      <pubDate>Sat, 15 Aug 2026 09:39:44 GMT</pubDate>
+      <guid isPermaLink="false">ep_20260815_mono_fd65a4</guid>
+      <itunes:author>Monurium</itunes:author>
+      <itunes:duration>00:10:50</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+      <enclosure url="https://monurium.github.io/daily-podcast-generator/episodes/ep_20260815_mono_fd65a4.mp3" length="5207616" type="audio/mpeg"/>
+    </item>
+    <item>
       <title>Daily News Podcast (Co-Hosts) - August 15, 2026</title>
       <description>Dual-host conversational technology and global news podcast for English learners.</description>
       <pubDate>Sat, 15 Aug 2026 09:22:47 GMT</pubDate>
