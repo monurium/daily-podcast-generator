@@ -217,12 +217,13 @@ class AudioGenerator:
                                     temp_turn_files.append(temp_file)
                                     turn_success = True
                                     break
-                    except Exception:
+                    except Exception as turn_err:
+                        print(f"⚠️ Turn {idx} ({speaker}) synthesis failed: {turn_err}")
                         continue
                     if turn_success:
                         break
 
-            if temp_turn_files:
+            if len(temp_turn_files) >= int(len(turns) * 0.8):
                 with open(output_path, "wb") as outfile:
                     for t_file in temp_turn_files:
                         if os.path.exists(t_file):
@@ -237,10 +238,17 @@ class AudioGenerator:
                 file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
                 words = len(dialogue_script.split())
                 duration_sec = max(30, int((words / 130.0) * 60))
-                print(f"🎉 2-Host Male & Female Podcast MP3 audio generated successfully: {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
+                print(f"🎉 2-Host Male & Female Podcast MP3 audio generated successfully via Gemini ({len(temp_turn_files)}/{len(turns)} turns): {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
                 return True, duration_sec
-
-            return False, 0
+            else:
+                print(f"⚠️ Gemini TTS only completed {len(temp_turn_files)}/{len(turns)} turns due to API rate limits. Falling back to Edge-TTS for complete episode.")
+                for t_file in temp_turn_files:
+                    if os.path.exists(t_file):
+                        try:
+                            os.remove(t_file)
+                        except OSError:
+                            pass
+                return False, 0
 
         except Exception as e:
             print(f"⚠️ Google AI Studio dialogue error ({e}). Falling back to Edge-TTS backup.")
