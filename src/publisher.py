@@ -35,11 +35,14 @@ class Publisher:
         # Filename based on GUID / slug
         filename = f"{episode_meta['id']}.mp3"
         dest_path = os.path.join(self.output_dir, "episodes", filename)
-        os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-
         shutil.copy2(temp_audio_path, dest_path)
 
-        # Build public HTTPS URL for Apple Podcasts enclosure tag
+        # Copy to root episodes folder so GitHub Pages root URL matches perfectly
+        root_episodes_path = os.path.join("episodes", filename)
+        os.makedirs("episodes", exist_ok=True)
+        shutil.copy2(temp_audio_path, root_episodes_path)
+
+        # Build public HTTPS URL for Spotify & Apple Podcasts enclosure tag
         public_audio_url = f"{base_url.rstrip('/')}/episodes/{filename}"
         
         new_entry = {
