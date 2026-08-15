@@ -3,13 +3,13 @@ import re
 import asyncio
 import time
 import tempfile
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, Any, List, Tuple
 
 DEFAULT_EDGE_VOICE = "en-US-AndrewNeural"
-GEMINI_TTS_MODELS = ("gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts", "gemini-2.0-flash")
+GEMINI_TTS_MODELS = ("gemini-2.5-flash-preview-tts", "gemini-2.0-flash")
 GEMINI_VOICE_MAP = {"Alex": "Puck", "Sarah": "Aoede"}
 EDGE_VOICE_MAP = {"Alex": "en-US-ChristopherNeural", "Sarah": "en-US-AvaNeural"}
+PACING_SECONDS_PER_REQUEST = 6.2  # Guarantees strictly staying under the 10 RPM quota limit
 
 def raw_pcm_to_mp3_bytes(pcm_bytes: bytes, sample_rate: int = 24000, num_channels: int = 1, bitrate: int = 64) -> bytes:
     """Encodes raw 24kHz 16-bit PCM audio bytes from Google AI Studio into compressed MP3 format using lameenc."""
@@ -128,7 +128,7 @@ class AudioGenerator:
         if not valid_turns:
             return False, 0
 
-        print(f"✨ Synthesizing 2-host dialogue via Google AI Studio ({len(valid_turns)} turns in parallel)...")
+        print(f"✨ Synthesizing 2-host dialogue via Google AI Studio Flash ({len(valid_turns)} turns, smart rate limiter < 10 RPM)...")
         try:
             from google import genai
             from google.genai import types
@@ -138,8 +138,7 @@ class AudioGenerator:
             temp_turn_results = {}
 
             with tempfile.TemporaryDirectory() as temp_dir:
-                def _synth_turn(t_item):
-                    idx, speaker, clean_text = t_item
+                for t_idx, (idx, speaker, clean_text) in enumerate(valid_turns):
                     voice_name = GEMINI_VOICE_MAP.get(speaker, "Puck" if speaker == "Alex" else "Aoede")
                     config = types.GenerateContentConfig(
                         response_modalities=["AUDIO"],
@@ -152,6 +151,7 @@ class AudioGenerator:
                     turn_prompt = f"Speak clearly as a podcast co-host: {clean_text}"
                     t_file = os.path.join(temp_dir, f"turn_{idx:04d}.mp3")
 
+                    turn_success = False
                     for model_name in GEMINI_TTS_MODELS:
                         for attempt in range(2):
                             try:
@@ -167,22 +167,25 @@ class AudioGenerator:
                                             mp3_chunk = raw_pcm_to_mp3_bytes(pcm_chunk)
                                             with open(t_file, "wb") as f:
                                                 f.write(mp3_chunk)
-                                            return idx, t_file
-                            except Exception as err:
-                                if "limit: 0" in str(err):
+                                            temp_turn_results[idx] = t_file
+                                            turn_success = True
+                                            break
+                                if turn_success:
                                     break
-                                if "429" in str(err) or "RESOURCE_EXHAUSTED" in str(err):
-                                    time.sleep(1.5 * (attempt + 1))
+                            except Exception as err:
+                                err_str = str(err)
+                                if "limit: 0" in err_str:
+                                    break
+                                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                                    time.sleep(7.0)
                                 else:
                                     break
-                    return idx, None
+                        if turn_success:
+                            break
 
-                with ThreadPoolExecutor(max_workers=4) as executor:
-                    futures = {executor.submit(_synth_turn, item): item for item in valid_turns}
-                    for f in as_completed(futures):
-                        t_idx, t_file = f.result()
-                        if t_file and os.path.exists(t_file):
-                            temp_turn_results[t_idx] = t_file
+                    # Pacing delay between turns to strictly stay below 10 RPM limit
+                    if t_idx < len(valid_turns) - 1:
+                        time.sleep(PACING_SECONDS_PER_REQUEST)
 
                 if len(temp_turn_results) >= int(len(valid_turns) * 0.8):
                     os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
@@ -196,10 +199,10 @@ class AudioGenerator:
                     file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
                     words = len(dialogue_script.split())
                     duration_sec = max(30, int((words / 130.0) * 60))
-                    print(f"🎉 2-Host Podcast MP3 generated successfully via Gemini ({len(temp_turn_results)}/{len(valid_turns)} turns): {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
+                    print(f"🎉 2-Host Podcast MP3 generated successfully via Gemini Flash ({len(temp_turn_results)}/{len(valid_turns)} turns): {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
                     return True, duration_sec
                 else:
-                    print(f"⚠️ Gemini TTS multi-turn completed {len(temp_turn_results)}/{len(valid_turns)} turns.")
+                    print(f"⚠️ Gemini Flash TTS completed {len(temp_turn_results)}/{len(valid_turns)} turns.")
                     return False, 0
 
         except Exception as e:
