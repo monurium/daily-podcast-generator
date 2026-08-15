@@ -2,9 +2,23 @@ import os
 import re
 import struct
 import asyncio
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 
 DEFAULT_EDGE_VOICE = "en-US-AndrewNeural"
+
+def raw_pcm_to_mp3_bytes(pcm_bytes: bytes, sample_rate: int = 24000, num_channels: int = 1, bitrate: int = 64) -> bytes:
+    """Encodes raw 24kHz 16-bit PCM audio bytes from Google AI Studio into compressed MP3 format using lameenc."""
+    try:
+        import lameenc
+        encoder = lameenc.Encoder()
+        encoder.set_bit_rate(bitrate)
+        encoder.set_in_sample_rate(sample_rate)
+        encoder.set_channels(num_channels)
+        encoder.set_quality(2)
+        return encoder.encode(pcm_bytes) + encoder.flush()
+    except Exception as e:
+        print(f"⚠️ lameenc MP3 encoding failed ({e}). Falling back to uncompressed WAV format.")
+        return raw_pcm_to_wav_bytes(pcm_bytes, sample_rate, num_channels)
 
 def raw_pcm_to_wav_bytes(pcm_bytes: bytes, sample_rate: int = 24000, num_channels: int = 1, bits_per_sample: int = 16) -> bytes:
     """Wraps raw 24kHz 16-bit PCM audio bytes from Google AI Studio into a standard, fully-playable RIFF WAV format."""
@@ -47,11 +61,11 @@ class AudioGenerator:
         self.edge_voice = edge_voice
         self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
-    def _generate_gemini_audio(self, script_text: str, output_path: str) -> bool:
+    def _generate_gemini_audio(self, script_text: str, output_path: str) -> Tuple[bool, int]:
         """Synthesizes high-realism lively native audio using Google AI Studio gemini-2.5-flash-preview-tts with Aoede voice."""
         if not self.gemini_api_key:
             print("ℹ️ No GEMINI_API_KEY set. Using Edge-TTS backup engine.")
-            return False
+            return False, 0
 
         print("✨ Synthesizing lively native audio via Google AI Studio (Voice: Aoede)...")
         candidate_models = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"]
@@ -92,25 +106,25 @@ class AudioGenerator:
                         for part in response.candidates[0].content.parts:
                             if hasattr(part, "inline_data") and part.inline_data:
                                 pcm_data = part.inline_data.data
-                                wav_data = raw_pcm_to_wav_bytes(pcm_data)
+                                audio_bytes = raw_pcm_to_mp3_bytes(pcm_data)
                                 
                                 os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
                                 with open(output_path, "wb") as f:
-                                    f.write(wav_data)
+                                    f.write(audio_bytes)
                                 
                                 file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
-                                duration_sec = int(len(pcm_data) / 48000)
-                                print(f"🎉 Google AI Studio audio generated successfully via model '{model_name}': {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
-                                return True
+                                duration_sec = max(30, int(len(pcm_data) / 48000))
+                                print(f"🎉 Google AI Studio MP3 audio generated successfully via model '{model_name}': {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
+                                return True, duration_sec
                 except Exception as model_err:
                     print(f"⚠️ Model '{model_name}' attempt failed: {model_err}")
 
             print("⚠️ Google AI Studio models unavailable. Falling back to Edge-TTS backup.")
-            return False
+            return False, 0
 
         except Exception as e:
             print(f"⚠️ Google AI Studio error ({e}). Falling back to Edge-TTS backup.")
-            return False
+            return False, 0
 
     async def _synthesize_sentence_edge(self, index: int, text: str, output_dir: str) -> str:
         """Synthesizes a single sentence with Edge-TTS, safely handling exceptions per chunk."""
@@ -182,20 +196,17 @@ class AudioGenerator:
     def text_to_audio(self, script_text: str, output_path: str) -> Dict[str, Any]:
         """Dual-engine runner: tries Google AI Studio first, falls back to Edge-TTS."""
         audio_created = False
+        duration_seconds = 0
 
         if self.gemini_api_key:
-            audio_created = self._generate_gemini_audio(script_text, output_path)
+            audio_created, duration_seconds = self._generate_gemini_audio(script_text, output_path)
 
         if not audio_created:
             asyncio.run(self.build_audio_monologue_edge(script_text, output_path))
-
-        file_size = os.path.getsize(output_path) if os.path.exists(output_path) else 0
-        
-        if audio_created and file_size > 44:
-            duration_seconds = max(30, int((file_size - 44) / 48000))
-        else:
             words = len(script_text.split())
             duration_seconds = max(30, int((words / 130.0) * 60))
+
+        file_size = os.path.getsize(output_path) if os.path.exists(output_path) else 0
 
         return {
             "file_path": output_path,
