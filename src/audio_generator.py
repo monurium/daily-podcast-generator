@@ -142,9 +142,9 @@ class AudioGenerator:
             client = genai.Client(api_key=self.gemini_api_key)
 
             prompt = (
-                "You are producing a highly engaging, articulate 2-host daily news podcast.\n"
-                "The conversation features two natural co-hosts: Alex (energetic interviewer) and Sarah (knowledgeable articulate expert).\n"
-                "Perform the following dialogue script with distinct vocal expressions for Alex and Sarah, realistic flow, and warm podcast audio dynamics:\n\n"
+                "You are producing a highly engaging, articulate 2-host daily AI & tech news podcast.\n"
+                "The conversation features two distinct co-hosts: Alex (Male co-host with an energetic, warm, confident male voice) and Sarah (Female co-host with an articulate, intelligent, polished female voice).\n"
+                "Perform the following dialogue script with clear male (Alex) and female (Sarah) voice differentiation, realistic natural pause dynamics, and lively podcast banter:\n\n"
                 f"{dialogue_script}"
             )
 
