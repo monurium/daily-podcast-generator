@@ -8,8 +8,14 @@ from src.content_generator import ContentGenerator
 from src.audio_generator import AudioGenerator
 from src.rss_builder import RSSBuilder
 from src.publisher import Publisher
-
 import argparse
+import sys
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 load_dotenv()
 
@@ -60,56 +66,74 @@ def run_daily_podcast_pipeline(test_mode: bool = False):
     pub_date = datetime.datetime.now(datetime.timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
 
     if test_mode:
-        print("\n[Step 2/2] 🧪 Synthesizing 2-Host Test Episode (Alex: Male & Sarah: Female)...")
+        print("\n[Step 2/3] 🧪 Synthesizing 2-Host Test Episode (Alex: Male & Sarah: Female)...")
         test_audio_path = os.path.join("output", "test_dialogue_podcast.mp3")
         dialogue_audio_meta = audio_gen.dialogue_to_audio(dialogue_script_data["script"], test_audio_path)
 
+        print("\n[Step 3/3] 🧪 Building Isolated Test RSS Feed & Manifest in ./output/...")
+        test_publisher = Publisher(output_dir="output")
+        test_episode_meta = {
+            "id": "ep_test_dialogue",
+            "title": "[TEST] " + dialogue_script_data["title"],
+            "summary": dialogue_script_data["summary"],
+            "script": dialogue_script_data["script"],
+            "pub_date": pub_date,
+            "file_size": dialogue_audio_meta["file_size"],
+            "duration_formatted": dialogue_audio_meta["duration_formatted"]
+        }
+        test_episodes = test_publisher.add_episode(test_episode_meta, test_audio_path, base_url)
+
+        test_rss_builder = RSSBuilder(config=config)
+        test_xml_path = os.path.join("output", "test_podcast.xml")
+        test_rss_builder.build_feed(test_episodes, test_xml_path)
+
         print("\n" + "=" * 60)
-        print("🎉 TEST COMPLETED SUCCESSFULLY!")
+        print("🎉 ISOLATED TEST COMPLETED SUCCESSFULLY!")
         print(f"📄 Test Script: {dialogue_file_path}")
         print(f"🎧 Test Audio MP3: {test_audio_path}")
-        print("💡 Spotify & RSS feeds were NOT modified during this test.")
+        print(f"📡 Test RSS Feed XML: {test_xml_path}")
+        print("🛡️ Production podcast.xml, dist/ and episodes/ were NOT modified.")
         print("=" * 60)
         return
 
     # --- Production Publishing Mode ---
     publisher = Publisher(output_dir=output_dir)
 
-    # 3a. Synthesize Monologue Episode (Backup)
-    mono_episode_id = f"ep_{today_str}_mono_{uuid.uuid4().hex[:6]}"
-    temp_mono_path = os.path.join("output", "temp", f"{mono_episode_id}.mp3")
-    print("\n[Step 2a/3] Synthesizing Backup Monologue MP3 audio...")
-    mono_audio_meta = audio_gen.text_to_audio(script_data["script"], temp_mono_path)
-
-    mono_episode_meta = {
-        "id": mono_episode_id,
-        "title": script_data["title"] + " (Monologue Backup)",
-        "summary": script_data["summary"],
-        "script": script_data["script"],
-        "bulletin_summary": script_data.get("bulletin_summary", script_data["summary"]),
-        "pub_date": pub_date,
-        "file_size": mono_audio_meta["file_size"],
-        "duration_formatted": mono_audio_meta["duration_formatted"]
-    }
-    publisher.add_episode(mono_episode_meta, temp_mono_path, base_url)
-
-    # 3b. Synthesize 2-Host Dialogue Podcast Episode (Primary Main Episode)
+    # 3. Synthesize Primary 2-Host Dialogue Podcast Episode
     dialogue_episode_id = f"ep_{today_str}_podcast_{uuid.uuid4().hex[:6]}"
     temp_dialogue_path = os.path.join("output", "temp", f"{dialogue_episode_id}.mp3")
-    print("\n[Step 2b/3] Synthesizing Primary 2-Host (Alex: Male & Sarah: Female) MP3 podcast...")
-    dialogue_audio_meta = audio_gen.dialogue_to_audio(dialogue_script_data["script"], temp_dialogue_path)
+    print("\n[Step 2/3] Synthesizing Primary 2-Host (Alex: Male & Sarah: Female) MP3 podcast...")
 
-    dialogue_episode_meta = {
-        "id": dialogue_episode_id,
-        "title": dialogue_script_data["title"],
-        "summary": dialogue_script_data["summary"],
-        "script": dialogue_script_data["script"],
-        "bulletin_summary": dialogue_script_data.get("bulletin_summary", dialogue_script_data["summary"]),
-        "pub_date": pub_date,
-        "file_size": dialogue_audio_meta["file_size"],
-        "duration_formatted": dialogue_audio_meta["duration_formatted"]
-    }
-    all_episodes = publisher.add_episode(dialogue_episode_meta, temp_dialogue_path, base_url)
+    try:
+        dialogue_audio_meta = audio_gen.dialogue_to_audio(dialogue_script_data["script"], temp_dialogue_path)
+        dialogue_episode_meta = {
+            "id": dialogue_episode_id,
+            "title": dialogue_script_data["title"],
+            "summary": dialogue_script_data["summary"],
+            "script": dialogue_script_data["script"],
+            "bulletin_summary": dialogue_script_data.get("bulletin_summary", dialogue_script_data["summary"]),
+            "pub_date": pub_date,
+            "file_size": dialogue_audio_meta["file_size"],
+            "duration_formatted": dialogue_audio_meta["duration_formatted"]
+        }
+        all_episodes = publisher.add_episode(dialogue_episode_meta, temp_dialogue_path, base_url)
+    except Exception as dialogue_err:
+        print(f"⚠️ Primary Dialogue Podcast synthesis failed ({dialogue_err}). Falling back to Monologue Backup...")
+        mono_episode_id = f"ep_{today_str}_mono_{uuid.uuid4().hex[:6]}"
+        temp_mono_path = os.path.join("output", "temp", f"{mono_episode_id}.mp3")
+        mono_audio_meta = audio_gen.text_to_audio(script_data["script"], temp_mono_path)
+        mono_episode_meta = {
+            "id": mono_episode_id,
+            "title": script_data["title"],
+            "summary": script_data["summary"],
+            "script": script_data["script"],
+            "bulletin_summary": script_data.get("bulletin_summary", script_data["summary"]),
+            "pub_date": pub_date,
+            "file_size": mono_audio_meta["file_size"],
+            "duration_formatted": mono_audio_meta["duration_formatted"]
+        }
+        all_episodes = publisher.add_episode(mono_episode_meta, temp_mono_path, base_url)
+
 
     # 4. RSS XML Feed Generation for Spotify & Apple Podcasts
     print("\n[Step 3/3] Updating Spotify & Apple Podcasts RSS feeds...")

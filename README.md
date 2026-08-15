@@ -54,14 +54,20 @@ GEMINI_API_KEY=your_gemini_api_key
 ```
 
 ### 3. Run Local Test Mode (Dry-Run)
-To test script generation and voice synthesis without updating Spotify or live RSS feeds:
+To test script generation, voice synthesis, and RSS XML building in a fully isolated environment:
 ```bash
 python main.py --test
 ```
-- **Output:**
-  - 📄 `output/dialogue_script.txt` (Generated test script)
+- **Isolated Outputs (Git-Ignored in `./output/`):**
+  - 📄 `output/dialogue_script.txt` (Generated test dialogue script)
   - 🎧 `output/test_dialogue_podcast.mp3` (Generated Male & Female test audio)
-  - 🛡️ **Spotify & `podcast.xml` are NOT modified.**
+  - 📡 `output/test_podcast.xml` (Isolated test RSS feed XML for validation)
+  - 📂 `output/test_manifest.json` (Isolated test episode manifest)
+  - 🛡️ **Production `podcast.xml`, `dist/`, and Spotify are NEVER modified.**
+
+### 4. GitHub Actions Test Workflow
+- Any **Pull Request** or manual **`workflow_dispatch`** run triggers `.github/workflows/test_pipeline.yml`.
+- Generates test audio & RSS feeds and uploads them as downloadable GitHub Actions build artifacts without pushing changes to `main` branch.
 
 ---
 

@@ -9,13 +9,13 @@ class ContentGenerator:
 
     def __init__(self, api_key: str = None):
         self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY")
-        if not self.api_key:
-            raise ValueError("DEEPSEEK_API_KEY environment variable is missing.")
-        
-        self.client = OpenAI(
-            api_key=self.api_key,
-            base_url="https://api.deepseek.com"
-        )
+        if self.api_key and self.api_key != "your_deepseek_api_key_here":
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url="https://api.deepseek.com"
+            )
+        else:
+            self.client = None
         
         self.rss_feeds = [
             "https://techcrunch.com/category/artificial-intelligence/feed/",
@@ -84,17 +84,25 @@ class ContentGenerator:
             "Generate a 1400-1500 word lively AI & Technology news monologue script covering the top stories in full detail."
         )
 
-        response = self.client.chat.completions.create(
-            model="deepseek-chat",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            temperature=0.6,
-            max_tokens=4096
-        )
+        if not self.client:
+            print("⚠️ DeepSeek API key is missing or invalid. Using sample fallback script.")
+            return self._get_fallback_script("monologue")
 
-        full_content = response.choices[0].message.content.strip()
+        try:
+            response = self.client.chat.completions.create(
+                model="deepseek-chat",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.6,
+                max_tokens=4096
+            )
+            full_content = response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"⚠️ DeepSeek API call failed ({e}). Using sample fallback script.")
+            return self._get_fallback_script("monologue")
+
         lines = full_content.split("\n")
         title = f"Daily Tech & AI Digest - {datetime.date.today().strftime('%B %d, %Y')}"
         
@@ -116,6 +124,10 @@ class ContentGenerator:
         """Generates a lively 2-host podcast conversation script (Alex & Sarah) targeting 1200-1400 words."""
         print("🤖 Prompting DeepSeek-V3 for a 2-host AI & Tech conversational podcast script...")
 
+        if not self.client:
+            print("⚠️ DeepSeek API key is missing or invalid. Using sample fallback dialogue script.")
+            return self._get_fallback_script("dialogue")
+
         system_prompt = (
             "You are a top-tier podcast producer and English language educator. "
             "Your task is to write a dynamic, engaging 2-host daily Artificial Intelligence and Technology news podcast conversation script for intermediate (B2) learners.\n\n"
@@ -136,17 +148,21 @@ class ContentGenerator:
             "Generate a 2-host daily AI & Tech podcast conversation script (Alex & Sarah) covering the top stories in interactive detail."
         )
 
-        response = self.client.chat.completions.create(
-            model="deepseek-chat",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            temperature=0.65,
-            max_tokens=4096
-        )
+        try:
+            response = self.client.chat.completions.create(
+                model="deepseek-chat",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.65,
+                max_tokens=4096
+            )
+            full_content = response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"⚠️ DeepSeek API call failed ({e}). Using sample fallback dialogue script.")
+            return self._get_fallback_script("dialogue")
 
-        full_content = response.choices[0].message.content.strip()
         title = f"Daily AI & Tech Podcast (Co-Hosts) - {datetime.date.today().strftime('%B %d, %Y')}"
         summary_bulletin = self._format_bulletin_summary(full_content)
 
@@ -156,6 +172,35 @@ class ContentGenerator:
             "summary": "Dual-host conversational AI and technology news podcast for English learners.",
             "bulletin_summary": summary_bulletin
         }
+
+    def _get_fallback_script(self, script_type: str) -> Dict[str, Any]:
+        today_formatted = datetime.date.today().strftime('%B %d, %Y')
+        if script_type == "dialogue":
+            sample_file = os.path.join("output", "sample_dialogue_script.txt")
+            if os.path.exists(sample_file):
+                with open(sample_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+            else:
+                content = (
+                    "Alex: Welcome to AI Pulse Daily! I'm Alex, joined by Sarah.\n"
+                    "Sarah: Thanks Alex! Today we have exciting tech news about AI reasoning and autonomous agents.\n"
+                    "Alex: Absolutely. Researchers have introduced new models capable of full-stack software development.\n"
+                    "Sarah: Exactly. It opens up brand new possibilities for developers around the world.\n"
+                    "Alex: Thanks for tuning in today, stay curious!"
+                )
+            return {
+                "title": f"Daily AI & Tech Podcast (Co-Hosts) - {today_formatted}",
+                "script": content,
+                "summary": "Dual-host conversational AI and technology news podcast for English learners.",
+                "bulletin_summary": "<p>Today's AI and Tech developments.</p>"
+            }
+        else:
+            return {
+                "title": f"Daily Tech & AI Digest - {today_formatted}",
+                "script": "Hello listeners! Welcome to today's AI and Tech digest. Today we explore developments in artificial intelligence, robotics, and software innovation.",
+                "summary": "Daily Artificial Intelligence and technology news monologue for B2 English learners.",
+                "bulletin_summary": "<p>Daily AI news summary.</p>"
+            }
 
     def _format_bulletin_summary(self, script_text: str) -> str:
         """Formats the script into an attractive HTML email summary block."""
