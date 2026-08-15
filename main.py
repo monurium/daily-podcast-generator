@@ -8,7 +8,6 @@ from src.content_generator import ContentGenerator
 from src.audio_generator import AudioGenerator
 from src.rss_builder import RSSBuilder
 from src.publisher import Publisher
-from src.email_sender import EmailSender
 
 import argparse
 
