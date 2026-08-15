@@ -69,7 +69,7 @@ class AudioGenerator:
             return False, 0
 
         print("✨ Synthesizing lively native audio via Google AI Studio (Voice: Aoede)...")
-        candidate_models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-preview-tts"]
+        candidate_models = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts", "gemini-2.0-flash"]
         
         try:
             from google import genai
@@ -154,7 +154,7 @@ class AudioGenerator:
             return False, 0
 
         print("✨ Synthesizing 2-host podcast conversation via Google AI Studio (Alex: Male [Puck], Sarah: Female [Aoede])...")
-        candidate_models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-preview-tts"]
+        candidate_models = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts", "gemini-2.0-flash"]
         turns = self._parse_dialogue_turns(dialogue_script)
         
         if not turns:
