@@ -2,6 +2,7 @@ import os
 import re
 import struct
 import asyncio
+import time
 from typing import Dict, Any, List, Tuple
 
 DEFAULT_EDGE_VOICE = "en-US-AndrewNeural"
@@ -200,27 +201,37 @@ class AudioGenerator:
                 
                 turn_success = False
                 for model_name in candidate_models:
-                    try:
-                        response = client.models.generate_content(
-                            model=model_name,
-                            contents=turn_prompt,
-                            config=config
-                        )
-                        if response.candidates and response.candidates[0].content.parts:
-                            for part in response.candidates[0].content.parts:
-                                if hasattr(part, "inline_data") and part.inline_data:
-                                    pcm_chunk = part.inline_data.data
-                                    mp3_chunk = raw_pcm_to_mp3_bytes(pcm_chunk)
-                                    temp_file = os.path.join(base_dir, f"gemini_turn_{idx:04d}.mp3")
-                                    with open(temp_file, "wb") as f:
-                                        f.write(mp3_chunk)
-                                    temp_turn_files.append(temp_file)
-                                    turn_success = True
-                                    break
-                    except Exception as turn_err:
-                        print(f"⚠️ Turn {idx} ({speaker}) synthesis failed: {turn_err}")
-                        continue
+                    for attempt in range(3):
+                        try:
+                            response = client.models.generate_content(
+                                model=model_name,
+                                contents=turn_prompt,
+                                config=config
+                            )
+                            if response.candidates and response.candidates[0].content.parts:
+                                for part in response.candidates[0].content.parts:
+                                    if hasattr(part, "inline_data") and part.inline_data:
+                                        pcm_chunk = part.inline_data.data
+                                        mp3_chunk = raw_pcm_to_mp3_bytes(pcm_chunk)
+                                        temp_file = os.path.join(base_dir, f"gemini_turn_{idx:04d}.mp3")
+                                        with open(temp_file, "wb") as f:
+                                            f.write(mp3_chunk)
+                                        temp_turn_files.append(temp_file)
+                                        turn_success = True
+                                        break
+                            if turn_success:
+                                break
+                        except Exception as turn_err:
+                            err_str = str(turn_err)
+                            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "Quota" in err_str:
+                                wait_sec = (attempt + 1) * 3
+                                print(f"⏳ Gemini API rate limit on turn {idx} ({speaker}). Waiting {wait_sec}s before retry {attempt+1}/3...")
+                                time.sleep(wait_sec)
+                            else:
+                                print(f"⚠️ Turn {idx} ({speaker}) synthesis failed: {turn_err}")
+                                break
                     if turn_success:
+                        time.sleep(0.4)
                         break
 
             if len(temp_turn_files) >= int(len(turns) * 0.8):
@@ -241,7 +252,7 @@ class AudioGenerator:
                 print(f"🎉 2-Host Male & Female Podcast MP3 audio generated successfully via Gemini ({len(temp_turn_files)}/{len(turns)} turns): {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
                 return True, duration_sec
             else:
-                print(f"⚠️ Gemini TTS only completed {len(temp_turn_files)}/{len(turns)} turns due to API rate limits. Falling back to Edge-TTS for complete episode.")
+                print(f"⚠️ Gemini TTS multi-turn completed {len(temp_turn_files)}/{len(turns)} turns due to API rate limits.")
                 for t_file in temp_turn_files:
                     if os.path.exists(t_file):
                         try:
@@ -251,7 +262,7 @@ class AudioGenerator:
                 return False, 0
 
         except Exception as e:
-            print(f"⚠️ Google AI Studio dialogue error ({e}). Falling back to Edge-TTS backup.")
+            print(f"⚠️ Google AI Studio dialogue error ({e}).")
             return False, 0
 
     async def _synthesize_sentence_edge(self, index: int, text: str, output_dir: str) -> str:
@@ -391,12 +402,18 @@ class AudioGenerator:
         return output_mp3
 
     def dialogue_to_audio(self, dialogue_script: str, output_path: str) -> Dict[str, Any]:
-        """Synthesizes a 2-host podcast conversation to MP3, trying Google AI Studio first then Edge-TTS backup."""
+        """Synthesizes a 2-host podcast conversation to MP3, trying Google AI Studio multi-turn first, then Single-Call Google AI Narrator, then Edge-TTS backup."""
         audio_created = False
         duration_seconds = 0
 
         if self.gemini_api_key:
+            # 1. Try 2-Host Multi-Turn Google AI Studio Podcast
             audio_created, duration_seconds = self._generate_gemini_dialogue_audio(dialogue_script, output_path)
+            
+            # 2. If multi-turn hit rate limits, try Single-Call Google AI Studio Narrator (1 API call)
+            if not audio_created:
+                print("✨ Trying Single-Call Google AI Studio Podcast Narrator (1 API request)...")
+                audio_created, duration_seconds = self._generate_gemini_audio(dialogue_script, output_path)
 
         if not audio_created:
             asyncio.run(self.build_audio_dialogue_edge(dialogue_script, output_path))
