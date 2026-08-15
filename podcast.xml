@@ -9,6 +9,10 @@
     <itunes:author>Monurium</itunes:author>
     <itunes:summary>Automated daily audio news bulletin covering the latest developments in technology, AI, and global affairs.</itunes:summary>
     <itunes:explicit>false</itunes:explicit>
+    <itunes:owner>
+      <itunes:name>Monurium</itunes:name>
+      <itunes:email>podcast@example.com</itunes:email>
+    </itunes:owner>
     <itunes:category text="Technology">
       <itunes:category text="Tech News"/>
     </itunes:category>

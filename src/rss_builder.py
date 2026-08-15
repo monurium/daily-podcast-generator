@@ -43,6 +43,11 @@ class RSSBuilder:
         ET.SubElement(channel, "itunes:summary").text = self.config.get("description", "")
         ET.SubElement(channel, "itunes:explicit").text = "true" if self.config.get("explicit", False) else "false"
 
+        # iTunes Owner (Mandatory for Spotify & Apple Podcasts validation)
+        owner_elem = ET.SubElement(channel, "itunes:owner")
+        ET.SubElement(owner_elem, "itunes:name").text = self.config.get("author", "Monurium")
+        ET.SubElement(owner_elem, "itunes:email").text = self.config.get("email", "podcast@example.com")
+
         # Category
         cat_elem = ET.SubElement(channel, "itunes:category", {"text": self.config.get("category", "Technology")})
         if self.config.get("subcategory"):
@@ -84,7 +89,9 @@ class RSSBuilder:
         # Clean extra blank lines
         clean_pretty_xml = "\n".join([line for line in pretty_xml.splitlines() if line.strip()])
 
-        os.makedirs(os.path.dirname(output_xml_path), exist_ok=True)
+        dir_name = os.path.dirname(output_xml_path)
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
         with open(output_xml_path, "w", encoding="utf-8") as f:
             f.write(clean_pretty_xml)
         
