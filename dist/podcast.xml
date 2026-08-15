@@ -25,6 +25,26 @@
     <item>
       <title>Daily AI &amp; Tech Podcast (Co-Hosts) - August 15, 2026</title>
       <description>Dual-host conversational AI and technology news podcast for English learners.</description>
+      <pubDate>Sat, 15 Aug 2026 10:50:30 GMT</pubDate>
+      <guid isPermaLink="false">ep_20260815_podcast_c35333</guid>
+      <itunes:author>Monurium</itunes:author>
+      <itunes:duration>00:12:42</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+      <enclosure url="https://monurium.github.io/daily-podcast-generator/episodes/ep_20260815_podcast_c35333.mp3" length="265032" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Daily Tech &amp; AI Digest - August 15, 2026 (Monologue Backup)</title>
+      <description>Daily Artificial Intelligence and technology news monologue for B2 English learners.</description>
+      <pubDate>Sat, 15 Aug 2026 10:50:30 GMT</pubDate>
+      <guid isPermaLink="false">ep_20260815_mono_51a99b</guid>
+      <itunes:author>Monurium</itunes:author>
+      <itunes:duration>00:10:55</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+      <enclosure url="https://monurium.github.io/daily-podcast-generator/episodes/ep_20260815_mono_51a99b.mp3" length="5241600" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Daily AI &amp; Tech Podcast (Co-Hosts) - August 15, 2026</title>
+      <description>Dual-host conversational AI and technology news podcast for English learners.</description>
       <pubDate>Sat, 15 Aug 2026 10:26:18 GMT</pubDate>
       <guid isPermaLink="false">ep_20260815_podcast_d2d16d</guid>
       <itunes:author>Monurium</itunes:author>
