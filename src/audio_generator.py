@@ -126,63 +126,119 @@ class AudioGenerator:
             print(f"⚠️ Google AI Studio error ({e}). Falling back to Edge-TTS backup.")
             return False, 0
 
+    def _parse_dialogue_turns(self, script_text: str) -> List[Tuple[str, str]]:
+        """Parses script lines into (speaker_name, text) pairs."""
+        turns: List[Tuple[str, str]] = []
+        
+        for line in script_text.splitlines():
+            line_str = line.strip()
+            if not line_str:
+                continue
+            if line_str.startswith("Alex:"):
+                turns.append(("Alex", line_str[5:].strip()))
+            elif line_str.startswith("Sarah:"):
+                turns.append(("Sarah", line_str[6:].strip()))
+            else:
+                if turns:
+                    prev_speaker, prev_text = turns[-1]
+                    turns[-1] = (prev_speaker, prev_text + " " + line_str)
+                else:
+                    turns.append(("Alex", line_str))
+        return turns
+
     def _generate_gemini_dialogue_audio(self, dialogue_script: str, output_path: str) -> Tuple[bool, int]:
-        """Synthesizes high-realism 2-host podcast conversation using Google AI Studio gemini-2.5-flash-preview-tts."""
+        """Synthesizes high-realism 2-host podcast conversation with distinct Male (Alex) and Female (Sarah) voices using Google AI Studio."""
         if not self.gemini_api_key:
             print("ℹ️ No GEMINI_API_KEY set. Using Edge-TTS backup engine for dialogue.")
             return False, 0
 
-        print("✨ Synthesizing 2-host podcast conversation via Google AI Studio (Co-Hosts: Alex & Sarah)...")
+        print("✨ Synthesizing 2-host podcast conversation via Google AI Studio (Alex: Male [Puck], Sarah: Female [Aoede])...")
         candidate_models = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"]
+        turns = self._parse_dialogue_turns(dialogue_script)
         
+        if not turns:
+            return False, 0
+
         try:
             from google import genai
             from google.genai import types
 
             client = genai.Client(api_key=self.gemini_api_key)
+            combined_pcm_bytes = bytearray()
+            pause_bytes = generate_silent_mp3_bytes(450)
 
-            prompt = (
-                "You are producing a highly engaging, articulate 2-host daily AI & tech news podcast.\n"
-                "The conversation features two distinct co-hosts: Alex (Male co-host with an energetic, warm, confident male voice) and Sarah (Female co-host with an articulate, intelligent, polished female voice).\n"
-                "Perform the following dialogue script with clear male (Alex) and female (Sarah) voice differentiation, realistic natural pause dynamics, and lively podcast banter:\n\n"
-                f"{dialogue_script}"
-            )
+            base_dir = os.path.dirname(output_path) if os.path.dirname(output_path) else "."
+            os.makedirs(base_dir, exist_ok=True)
+            
+            # Male voice for Alex, Female voice for Sarah
+            voice_map = {
+                "Alex": "Puck",     # Deep, energetic male voice
+                "Sarah": "Aoede"    # Articulate, polished female voice
+            }
 
-            config = types.GenerateContentConfig(
-                response_modalities=["AUDIO"],
-                speech_config=types.SpeechConfig(
-                    voice_config=types.VoiceConfig(
-                        prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                            voice_name="Aoede"
+            temp_turn_files = []
+
+            for idx, (speaker, text) in enumerate(turns):
+                clean_text = re.sub(r'\[.*?\]|\(.*?\)', '', text).strip()
+                if not clean_text:
+                    continue
+
+                voice_name = voice_map.get(speaker, "Puck" if speaker == "Alex" else "Aoede")
+                
+                config = types.GenerateContentConfig(
+                    response_modalities=["AUDIO"],
+                    speech_config=types.SpeechConfig(
+                        voice_config=types.VoiceConfig(
+                            prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                                voice_name=voice_name
+                            )
                         )
                     )
                 )
-            )
 
-            for model_name in candidate_models:
-                try:
-                    response = client.models.generate_content(
-                        model=model_name,
-                        contents=prompt,
-                        config=config
-                    )
+                turn_prompt = f"Speak clearly as a podcast co-host: {clean_text}"
+                
+                turn_success = False
+                for model_name in candidate_models:
+                    try:
+                        response = client.models.generate_content(
+                            model=model_name,
+                            contents=turn_prompt,
+                            config=config
+                        )
+                        if response.candidates and response.candidates[0].content.parts:
+                            for part in response.candidates[0].content.parts:
+                                if hasattr(part, "inline_data") and part.inline_data:
+                                    pcm_chunk = part.inline_data.data
+                                    mp3_chunk = raw_pcm_to_mp3_bytes(pcm_chunk)
+                                    temp_file = os.path.join(base_dir, f"gemini_turn_{idx:04d}.mp3")
+                                    with open(temp_file, "wb") as f:
+                                        f.write(mp3_chunk)
+                                    temp_turn_files.append(temp_file)
+                                    turn_success = True
+                                    break
+                    except Exception:
+                        continue
+                    if turn_success:
+                        break
 
-                    if response.candidates and response.candidates[0].content.parts:
-                        for part in response.candidates[0].content.parts:
-                            if hasattr(part, "inline_data") and part.inline_data:
-                                pcm_data = part.inline_data.data
-                                audio_bytes = raw_pcm_to_mp3_bytes(pcm_data)
-                                
-                                os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
-                                with open(output_path, "wb") as f:
-                                    f.write(audio_bytes)
-                                
-                                file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
-                                duration_sec = max(30, int(len(pcm_data) / 48000))
-                                print(f"🎉 2-Host Podcast MP3 audio generated successfully via model '{model_name}': {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
-                                return True, duration_sec
-                except Exception as model_err:
-                    print(f"⚠️ Model '{model_name}' dialogue attempt failed: {model_err}")
+            if temp_turn_files:
+                with open(output_path, "wb") as outfile:
+                    for t_file in temp_turn_files:
+                        if os.path.exists(t_file):
+                            with open(t_file, "rb") as infile:
+                                outfile.write(infile.read())
+                            outfile.write(pause_bytes)
+                            try:
+                                os.remove(t_file)
+                            except OSError:
+                                pass
+
+                file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
+                words = len(dialogue_script.split())
+                duration_sec = max(30, int((words / 130.0) * 60))
+                print(f"🎉 2-Host Male & Female Podcast MP3 audio generated successfully: {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
+                return True, duration_sec
 
             return False, 0
 
@@ -279,6 +335,53 @@ class AudioGenerator:
             "duration_formatted": f"{duration_seconds // 3600:02d}:{(duration_seconds % 3600) // 60:02d}:{duration_seconds % 60:02d}"
         }
 
+    async def build_audio_dialogue_edge(self, dialogue_script: str, output_mp3: str) -> str:
+        """Fallback Edge-TTS audio generator for 2-host dialogue (Alex: Male en-US-ChristopherNeural, Sarah: Female en-US-AvaNeural)."""
+        import edge_tts
+        print("🎙️ Synthesizing 2-Host Dialogue via Edge-TTS (Alex: Male [Christopher], Sarah: Female [Ava])...")
+        turns = self._parse_dialogue_turns(dialogue_script)
+        
+        base_dir = os.path.dirname(output_mp3) if os.path.dirname(output_mp3) else "."
+        os.makedirs(base_dir, exist_ok=True)
+        
+        tasks = []
+        for idx, (speaker, text) in enumerate(turns):
+            clean_text = re.sub(r'\[.*?\]|\(.*?\)', '', text).strip()
+            if not clean_text:
+                continue
+            voice = "en-US-ChristopherNeural" if speaker == "Alex" else "en-US-AvaNeural"
+            temp_file = os.path.join(base_dir, f"edge_turn_{idx:04d}.mp3")
+            
+            async def _synth(v=voice, t=clean_text, f=temp_file):
+                try:
+                    comm = edge_tts.Communicate(t, v, rate="-2%")
+                    await comm.save(f)
+                    return f
+                except Exception as ex:
+                    print(f"Warning: failed edge synth turn {f}: {ex}")
+                    return ""
+            
+            tasks.append(_synth())
+
+        temp_files = await asyncio.gather(*tasks)
+        pause_bytes = generate_silent_mp3_bytes(500)
+        
+        try:
+            with open(output_mp3, 'wb') as outfile:
+                for fname in temp_files:
+                    if fname and os.path.exists(fname):
+                        with open(fname, 'rb') as infile:
+                            outfile.write(infile.read())
+                        outfile.write(pause_bytes)
+        finally:
+            for fname in temp_files:
+                if fname and os.path.exists(fname):
+                    try:
+                        os.remove(fname)
+                    except OSError:
+                        pass
+        return output_mp3
+
     def dialogue_to_audio(self, dialogue_script: str, output_path: str) -> Dict[str, Any]:
         """Synthesizes a 2-host podcast conversation to MP3, trying Google AI Studio first then Edge-TTS backup."""
         audio_created = False
@@ -288,7 +391,7 @@ class AudioGenerator:
             audio_created, duration_seconds = self._generate_gemini_dialogue_audio(dialogue_script, output_path)
 
         if not audio_created:
-            asyncio.run(self.build_audio_monologue_edge(dialogue_script, output_path))
+            asyncio.run(self.build_audio_dialogue_edge(dialogue_script, output_path))
             words = len(dialogue_script.split())
             duration_seconds = max(30, int((words / 130.0) * 60))
 
