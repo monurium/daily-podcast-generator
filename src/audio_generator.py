@@ -3,6 +3,7 @@ import re
 import struct
 import asyncio
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, Any, List, Tuple
 
 DEFAULT_EDGE_VOICE = "en-US-AndrewNeural"
@@ -148,7 +149,7 @@ class AudioGenerator:
         return turns
 
     def _generate_gemini_dialogue_audio(self, dialogue_script: str, output_path: str) -> Tuple[bool, int]:
-        """Synthesizes high-realism 2-host podcast conversation with distinct Male (Alex) and Female (Sarah) voices using Google AI Studio."""
+        """Synthesizes high-realism 2-host podcast conversation with distinct Male (Alex) and Female (Sarah) voices using Google AI Studio in parallel."""
         if not self.gemini_api_key:
             print("ℹ️ No GEMINI_API_KEY set. Using Edge-TTS backup engine for dialogue.")
             return False, 0
@@ -165,7 +166,6 @@ class AudioGenerator:
             from google.genai import types
 
             client = genai.Client(api_key=self.gemini_api_key)
-            combined_pcm_bytes = bytearray()
             pause_bytes = generate_silent_mp3_bytes(450)
 
             base_dir = os.path.dirname(output_path) if os.path.dirname(output_path) else "."
@@ -177,15 +177,20 @@ class AudioGenerator:
                 "Sarah": "Aoede"    # Articulate, polished female voice
             }
 
-            temp_turn_files = []
-
+            valid_turns = []
             for idx, (speaker, text) in enumerate(turns):
                 clean_text = re.sub(r'\[.*?\]|\(.*?\)', '', text).strip()
-                if not clean_text:
-                    continue
+                if clean_text:
+                    valid_turns.append((idx, speaker, clean_text))
 
+            if not valid_turns:
+                return False, 0
+
+            temp_turn_results = {}
+
+            def _synth_single_turn(turn_data):
+                idx, speaker, clean_text = turn_data
                 voice_name = voice_map.get(speaker, "Puck" if speaker == "Alex" else "Aoede")
-                
                 config = types.GenerateContentConfig(
                     response_modalities=["AUDIO"],
                     speech_config=types.SpeechConfig(
@@ -196,12 +201,11 @@ class AudioGenerator:
                         )
                     )
                 )
-
                 turn_prompt = f"Speak clearly as a podcast co-host: {clean_text}"
-                
-                turn_success = False
+                temp_file = os.path.join(base_dir, f"gemini_turn_{idx:04d}.mp3")
+
                 for model_name in candidate_models:
-                    for attempt in range(3):
+                    for attempt in range(2):
                         try:
                             response = client.models.generate_content(
                                 model=model_name,
@@ -213,30 +217,32 @@ class AudioGenerator:
                                     if hasattr(part, "inline_data") and part.inline_data:
                                         pcm_chunk = part.inline_data.data
                                         mp3_chunk = raw_pcm_to_mp3_bytes(pcm_chunk)
-                                        temp_file = os.path.join(base_dir, f"gemini_turn_{idx:04d}.mp3")
                                         with open(temp_file, "wb") as f:
                                             f.write(mp3_chunk)
-                                        temp_turn_files.append(temp_file)
-                                        turn_success = True
-                                        break
-                            if turn_success:
-                                break
+                                        return idx, temp_file
                         except Exception as turn_err:
                             err_str = str(turn_err)
-                            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "Quota" in err_str:
-                                wait_sec = (attempt + 1) * 3
-                                print(f"⏳ Gemini API rate limit on turn {idx} ({speaker}). Waiting {wait_sec}s before retry {attempt+1}/3...")
-                                time.sleep(wait_sec)
-                            else:
-                                print(f"⚠️ Turn {idx} ({speaker}) synthesis failed: {turn_err}")
+                            if "limit: 0" in err_str:
+                                # Model not accessible on current tier, skip to next model
                                 break
-                    if turn_success:
-                        time.sleep(0.4)
-                        break
+                            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                                time.sleep(1.5 * (attempt + 1))
+                            else:
+                                break
+                return idx, None
 
-            if len(temp_turn_files) >= int(len(turns) * 0.8):
+            # Fast parallel execution across turns
+            with ThreadPoolExecutor(max_workers=4) as executor:
+                futures = {executor.submit(_synth_single_turn, t): t for t in valid_turns}
+                for f in as_completed(futures):
+                    t_idx, t_file = f.result()
+                    if t_file and os.path.exists(t_file):
+                        temp_turn_results[t_idx] = t_file
+
+            if len(temp_turn_results) >= int(len(valid_turns) * 0.8):
                 with open(output_path, "wb") as outfile:
-                    for t_file in temp_turn_files:
+                    for idx in sorted(temp_turn_results.keys()):
+                        t_file = temp_turn_results[idx]
                         if os.path.exists(t_file):
                             with open(t_file, "rb") as infile:
                                 outfile.write(infile.read())
@@ -249,11 +255,11 @@ class AudioGenerator:
                 file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
                 words = len(dialogue_script.split())
                 duration_sec = max(30, int((words / 130.0) * 60))
-                print(f"🎉 2-Host Male & Female Podcast MP3 audio generated successfully via Gemini ({len(temp_turn_files)}/{len(turns)} turns): {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
+                print(f"🎉 2-Host Male & Female Podcast MP3 audio generated successfully via Gemini ({len(temp_turn_results)}/{len(valid_turns)} turns): {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
                 return True, duration_sec
             else:
-                print(f"⚠️ Gemini TTS multi-turn completed {len(temp_turn_files)}/{len(turns)} turns due to API rate limits.")
-                for t_file in temp_turn_files:
+                print(f"⚠️ Gemini TTS multi-turn completed {len(temp_turn_results)}/{len(valid_turns)} turns.")
+                for t_file in temp_turn_results.values():
                     if os.path.exists(t_file):
                         try:
                             os.remove(t_file)
