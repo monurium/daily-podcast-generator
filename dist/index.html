@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Pulse Daily - Interactive AI & Tech Podcast with Live Transcript</title>
-  <meta name="description" content="Daily 10-minute conversational podcast covering AI breakthroughs, tech startups, and software news with interactive live transcripts in B2 English." />
+  <title>AI Pulse Daily - Interactive AI & Tech Podcast with Live Flowing Sentences</title>
+  <meta name="description" content="Daily 10-minute conversational podcast covering AI breakthroughs, tech startups, and software news with live flowing sentence-by-sentence transcripts in B2 English." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" />
@@ -142,10 +142,10 @@
 
     /* Hero Section */
     .hero {
-      padding: 48px 0 28px;
+      padding: 44px 0 24px;
       display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: 48px;
+      grid-template-columns: 280px 1fr;
+      gap: 44px;
       align-items: center;
     }
 
@@ -163,17 +163,12 @@
       object-fit: cover;
     }
 
-    .cover-wrapper:hover .cover-img {
-      transform: translateY(-4px) scale(1.02);
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(0, 242, 254, 0.4);
-    }
-
     .hero-content h1 {
       font-family: 'Outfit', sans-serif;
-      font-size: 40px;
+      font-size: 38px;
       font-weight: 800;
       line-height: 1.15;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       letter-spacing: -1px;
       background: linear-gradient(135deg, #ffffff 40%, var(--accent-cyan) 100%);
       -webkit-background-clip: text;
@@ -183,7 +178,7 @@
     .hero-content p {
       font-size: 16px;
       color: var(--text-muted);
-      margin-bottom: 24px;
+      margin-bottom: 22px;
       max-width: 600px;
     }
 
@@ -244,7 +239,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      margin: 20px 0;
+      margin: 16px 0 20px;
       overflow-x: auto;
       padding-bottom: 6px;
     }
@@ -279,7 +274,7 @@
       border: 1px solid var(--border-glow);
       border-radius: 24px;
       padding: 28px;
-      margin-bottom: 40px;
+      margin-bottom: 36px;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
     }
 
@@ -287,7 +282,7 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       gap: 20px;
     }
 
@@ -326,7 +321,7 @@
 
     /* Progress & Controls */
     .progress-container {
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .progress-bar-wrapper {
@@ -457,6 +452,7 @@
       cursor: pointer;
       user-select: none;
       border: 1px solid var(--border-subtle);
+      transition: all 0.2s;
     }
     .autoscroll-toggle.active {
       color: var(--accent-cyan);
@@ -464,118 +460,128 @@
       background: rgba(0, 242, 254, 0.08);
     }
 
-    /* Live Synchronized Transcript Box (Karaoke Teleprompter) */
-    .transcript-wrapper {
-      background: rgba(10, 14, 24, 0.85);
+    /* Live Flowing Sentences Teleprompter */
+    .teleprompter-card {
+      background: rgba(10, 14, 24, 0.9);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
-      padding: 20px;
+      border-radius: 18px;
+      padding: 24px;
       position: relative;
     }
 
-    .transcript-header {
+    .teleprompter-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       padding-bottom: 10px;
     }
 
-    .transcript-title {
+    .teleprompter-title {
       font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.5px;
-      color: var(--text-muted);
+      color: var(--accent-cyan);
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .transcript-container {
-      max-height: 280px;
+    .sentence-stream-viewport {
+      height: 320px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      padding: 10px 6px;
+      gap: 12px;
+      padding: 40px 12px 140px;
       scroll-behavior: smooth;
-    }
-
-    .dialogue-turn {
-      padding: 12px 16px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid transparent;
-      transition: all 0.3s ease;
-      cursor: pointer;
       position: relative;
-      opacity: 0.6;
+      /* Top & bottom subtle fade masks */
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
+      -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
     }
 
-    .dialogue-turn:hover {
-      opacity: 0.9;
-      background: rgba(255, 255, 255, 0.05);
+    .sentence-bubble {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: transparent;
+      border: 1px solid transparent;
+      opacity: 0.35;
+      filter: blur(0.3px);
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      cursor: pointer;
+    }
+
+    .sentence-bubble:hover {
+      opacity: 0.75;
+      filter: blur(0px);
+      background: rgba(255, 255, 255, 0.03);
       transform: translateX(4px);
     }
 
-    .dialogue-turn.active {
+    .sentence-bubble.active {
       opacity: 1;
+      filter: blur(0px);
       background: rgba(18, 26, 44, 0.95);
       border-color: var(--accent-cyan);
-      box-shadow: 0 0 20px rgba(0, 242, 254, 0.15);
-      transform: scale(1.01);
+      box-shadow: 0 4px 25px rgba(0, 242, 254, 0.2);
+      transform: scale(1.02) translateX(4px);
     }
 
-    .dialogue-turn.active.sarah-turn {
+    .sentence-bubble.active.sarah-bubble {
       border-color: var(--sarah-color);
-      box-shadow: 0 0 20px rgba(192, 132, 252, 0.15);
+      box-shadow: 0 4px 25px rgba(192, 132, 252, 0.2);
     }
 
-    .turn-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    .speaker-tag {
+    .speaker-avatar {
+      flex-shrink: 0;
       font-size: 11px;
       font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 8px;
       text-transform: uppercase;
-      padding: 3px 8px;
-      border-radius: 6px;
       letter-spacing: 0.5px;
+      margin-top: 2px;
     }
 
-    .speaker-alex {
+    .avatar-alex {
       background: rgba(56, 189, 248, 0.15);
       color: var(--alex-color);
       border: 1px solid rgba(56, 189, 248, 0.3);
     }
 
-    .speaker-sarah {
+    .avatar-sarah {
       background: rgba(192, 132, 252, 0.15);
       color: var(--sarah-color);
       border: 1px solid rgba(192, 132, 252, 0.3);
     }
 
-    .turn-time {
+    .sentence-body {
+      flex: 1;
+    }
+
+    .sentence-text {
+      font-size: 16px;
+      line-height: 1.55;
+      color: var(--text-muted);
+      transition: color 0.2s, font-size 0.2s;
+    }
+
+    .sentence-bubble.active .sentence-text {
+      color: #ffffff;
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .sentence-timestamp {
       font-size: 11px;
       color: var(--text-dim);
       font-family: monospace;
-    }
-
-    .turn-text {
-      font-size: 15px;
-      line-height: 1.6;
-      color: var(--text-muted);
-      transition: color 0.2s;
-    }
-
-    .dialogue-turn.active .turn-text {
-      color: #ffffff;
-      font-weight: 500;
+      margin-top: 4px;
     }
 
     /* Chapters & Learning Grid */
@@ -801,7 +807,7 @@
         <!-- Episode pills dynamically added -->
       </div>
 
-      <!-- Web Audio Player with Synchronized Transcript -->
+      <!-- Web Audio Player with Flowing Sentences Teleprompter -->
       <section class="player-card">
         <div class="player-header">
           <div>
@@ -837,22 +843,22 @@
 
           <div class="secondary-controls">
             <button class="speed-btn" id="speedBtn">1.0x</button>
-            <div class="autoscroll-toggle active" id="autoscrollToggle" title="Auto-scroll transcript with speech">
+            <div class="autoscroll-toggle active" id="autoscrollToggle" title="Auto-scroll sentences with speech">
               <span>📌 Auto-Scroll: ON</span>
             </div>
           </div>
         </div>
 
-        <!-- Live Synchronized Karaoke Transcript -->
-        <div class="transcript-wrapper">
-          <div class="transcript-header">
-            <span class="transcript-title">
-              <span style="color: var(--accent-cyan);">💬</span> Live Spoken Transcript (Click any line to jump)
+        <!-- Live Flowing Sentences Teleprompter Theater -->
+        <div class="teleprompter-card">
+          <div class="teleprompter-header">
+            <span class="teleprompter-title">
+              <span>💬</span> Live Flowing Sentences (Click any sentence to listen)
             </span>
-            <span style="font-size: 11px; color: var(--text-dim);">Real-Time Sync</span>
+            <span style="font-size: 11px; color: var(--text-dim);" id="sentenceCountBadge">128 Sentences</span>
           </div>
-          <div class="transcript-container" id="transcriptContainer">
-            <!-- Timed dialogue turns dynamically injected -->
+          <div class="sentence-stream-viewport" id="sentenceStream">
+            <!-- Individual timed sentences rendered here -->
           </div>
         </div>
       </section>
@@ -954,13 +960,15 @@
     const copyRssBtn = document.getElementById('copyRssBtn');
     const toast = document.getElementById('toast');
     const episodeSelector = document.getElementById('episodeSelector');
-    const transcriptContainer = document.getElementById('transcriptContainer');
+    const sentenceStream = document.getElementById('sentenceStream');
     const autoscrollToggle = document.getElementById('autoscrollToggle');
+    const sentenceCountBadge = document.getElementById('sentenceCountBadge');
 
     let allEpisodes = EMBEDDED_MANIFEST;
     let currentEpisode = allEpisodes[0];
-    let timedTurns = [];
+    let timedSentences = [];
     let isAutoscrollEnabled = true;
+    let totalTargetDuration = 643.0;
     const speeds = [1.0, 1.25, 1.5, 2.0];
     let speedIdx = 0;
 
@@ -1006,13 +1014,13 @@
       });
     }
 
-    function parseScriptToTimedTurns(scriptText) {
+    // High-Precision Proportional Sentence Timing Parser
+    function parseScriptToFlowingSentences(scriptText, totalDurationSeconds) {
       if (!scriptText) return [];
       const rawBlocks = scriptText.split('\n\n').map(b => b.trim()).filter(b => b.length > 0);
-      const turns = [];
-      let cumSec = 0.0;
+      const rawSentences = [];
 
-      rawBlocks.forEach((block, idx) => {
+      rawBlocks.forEach(block => {
         let speaker = 'Alex';
         let cleanText = block;
         if (block.startsWith('Alex:')) {
@@ -1023,32 +1031,59 @@
           cleanText = block.substring(6).trim();
         }
 
-        const words = cleanText.split(/\s+/).length;
-        const duration = (words / 130.0) * 60 + 0.45;
-        const startSec = cumSec;
-        const endSec = cumSec + duration;
+        // Split paragraph into distinct sentences
+        const sList = cleanText.match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) || [cleanText];
+        sList.forEach(s => {
+          const trimmed = s.trim();
+          if (trimmed.length > 1) {
+            rawSentences.push({ speaker, text: trimmed });
+          }
+        });
+      });
 
-        turns.push({
-          id: `turn_${idx}`,
-          speaker: speaker,
-          text: cleanText,
+      const totalWords = rawSentences.reduce((acc, item) => acc + item.text.split(/\s+/).length, 0) || 1;
+      const targetDuration = totalDurationSeconds > 30 ? totalDurationSeconds : 643.0;
+
+      let cumWords = 0;
+      const timedList = [];
+
+      rawSentences.forEach((item, idx) => {
+        const words = item.text.split(/\s+/).length;
+        const startSec = (cumWords / totalWords) * targetDuration;
+        const durSec = (words / totalWords) * targetDuration;
+        const endSec = startSec + durSec;
+
+        timedList.push({
+          id: `sent_${idx}`,
+          speaker: item.speaker,
+          text: item.text,
           startSec: startSec,
           endSec: endSec,
           timeFormatted: formatTime(startSec)
         });
 
-        cumSec += duration;
+        cumWords += words;
       });
 
-      return turns;
+      return timedList;
     }
 
     function setupPlayer(ep) {
       currentEpisode = ep;
       document.getElementById('epTitle').textContent = ep.title;
       document.getElementById('epDate').textContent = ep.pub_date ? ep.pub_date.split(' ').slice(0, 4).join(' ') : 'LATEST EPISODE';
-      document.getElementById('epDuration').textContent = ep.duration_formatted || '10:00';
+      document.getElementById('epDuration').textContent = ep.duration_formatted || '10:43';
       
+      // Calculate duration seconds from duration_formatted (HH:MM:SS)
+      if (ep.duration_formatted) {
+        const parts = ep.duration_formatted.split(':').map(Number);
+        if (parts.length === 3) {
+          totalTargetDuration = parts[0] * 3600 + parts[1] * 60 + parts[2];
+        } else if (parts.length === 2) {
+          totalTargetDuration = parts[0] * 60 + parts[1];
+        }
+      }
+
       const relativeAudioSrc = `episodes/${ep.guid}.mp3`;
       audio.src = relativeAudioSrc;
       
@@ -1058,72 +1093,72 @@
         }
       };
 
-      totalTimeEl.textContent = ep.duration_formatted || '10:00';
+      totalTimeEl.textContent = ep.duration_formatted || '10:43';
       progressFill.style.width = '0%';
       currentTimeEl.textContent = '00:00';
 
-      timedTurns = parseScriptToTimedTurns(ep.script);
-      renderLiveTranscript(timedTurns);
+      timedSentences = parseScriptToFlowingSentences(ep.script, totalTargetDuration);
+      sentenceCountBadge.textContent = `${timedSentences.length} Sentences`;
+      renderFlowingSentences(timedSentences);
       renderChapters(ep.chapters || []);
       renderVocab(ep.vocabulary || []);
     }
 
-    function renderLiveTranscript(turns) {
-      transcriptContainer.innerHTML = '';
-      if (!turns || turns.length === 0) {
-        transcriptContainer.innerHTML = '<p style="color: var(--text-dim); padding: 12px;">Transcript not available for this episode.</p>';
+    function renderFlowingSentences(sentences) {
+      sentenceStream.innerHTML = '';
+      if (!sentences || sentences.length === 0) {
+        sentenceStream.innerHTML = '<p style="color: var(--text-dim); text-align: center; padding: 20px;">No sentence stream available.</p>';
         return;
       }
 
-      turns.forEach((turn, idx) => {
-        const item = document.createElement('div');
-        item.className = `dialogue-turn ${turn.speaker === 'Sarah' ? 'sarah-turn' : ''} ${idx === 0 ? 'active' : ''}`;
-        item.id = turn.id;
-        item.dataset.start = turn.startSec;
-        item.dataset.end = turn.endSec;
+      sentences.forEach((s, idx) => {
+        const bubble = document.createElement('div');
+        bubble.className = `sentence-bubble ${s.speaker === 'Sarah' ? 'sarah-bubble' : ''} ${idx === 0 ? 'active' : ''}`;
+        bubble.id = s.id;
+        bubble.dataset.start = s.startSec;
 
-        const speakerClass = turn.speaker === 'Alex' ? 'speaker-alex' : 'speaker-sarah';
-        const speakerIcon = turn.speaker === 'Alex' ? '👨 Alex' : '👩 Sarah';
+        const avatarClass = s.speaker === 'Alex' ? 'avatar-alex' : 'avatar-sarah';
+        const speakerName = s.speaker === 'Alex' ? 'Alex' : 'Sarah';
 
-        item.innerHTML = `
-          <div class="turn-header">
-            <span class="speaker-tag ${speakerClass}">${speakerIcon}</span>
-            <span class="turn-time">${turn.timeFormatted}</span>
+        bubble.innerHTML = `
+          <div class="speaker-avatar ${avatarClass}">${speakerName}</div>
+          <div class="sentence-body">
+            <div class="sentence-text">${s.text}</div>
+            <div class="sentence-timestamp">${s.timeFormatted}</div>
           </div>
-          <p class="turn-text">${turn.text}</p>
         `;
 
-        item.onclick = () => {
-          audio.currentTime = turn.startSec;
+        bubble.onclick = () => {
+          audio.currentTime = s.startSec;
           if (audio.paused) {
             audio.play().catch(e => console.log('Autoplay policy', e));
           }
-          highlightActiveTurn(turn.startSec);
+          highlightActiveSentence(s.startSec);
         };
 
-        transcriptContainer.appendChild(item);
+        sentenceStream.appendChild(bubble);
       });
     }
 
-    function highlightActiveTurn(currentTime) {
-      if (!timedTurns || timedTurns.length === 0) return;
+    function highlightActiveSentence(currentTime) {
+      if (!timedSentences || timedSentences.length === 0) return;
 
       let activeIndex = 0;
-      for (let i = 0; i < timedTurns.length; i++) {
-        if (currentTime >= timedTurns[i].startSec) {
+      for (let i = 0; i < timedSentences.length; i++) {
+        if (currentTime >= timedSentences[i].startSec) {
           activeIndex = i;
         } else {
           break;
         }
       }
 
-      const turnElements = document.querySelectorAll('.dialogue-turn');
-      turnElements.forEach((el, idx) => {
+      const bubbleElements = document.querySelectorAll('.sentence-bubble');
+      bubbleElements.forEach((el, idx) => {
         if (idx === activeIndex) {
           if (!el.classList.contains('active')) {
             el.classList.add('active');
             if (isAutoscrollEnabled) {
-              el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
           }
         } else {
@@ -1222,13 +1257,18 @@
         progressFill.style.width = `${pct}%`;
         currentTimeEl.textContent = formatTime(audio.currentTime);
         totalTimeEl.textContent = formatTime(audio.duration);
-        highlightActiveTurn(audio.currentTime);
+        highlightActiveSentence(audio.currentTime);
         highlightChapter(audio.currentTime);
       }
     });
 
     audio.addEventListener('loadedmetadata', () => {
       totalTimeEl.textContent = formatTime(audio.duration);
+      if (audio.duration > 30) {
+        totalTargetDuration = audio.duration;
+        timedSentences = parseScriptToFlowingSentences(currentEpisode.script, totalTargetDuration);
+        renderFlowingSentences(timedSentences);
+      }
     });
 
     progressBar.addEventListener('click', (e) => {
