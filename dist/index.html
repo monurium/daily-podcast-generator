@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Pulse Daily - Automated AI & Tech Podcast for English Learners</title>
-  <meta name="description" content="Daily 10-minute conversational podcast covering AI breakthroughs, tech startups, and software news in engaging B2 English." />
+  <title>AI Pulse Daily - Interactive AI & Tech Podcast with Live Transcript</title>
+  <meta name="description" content="Daily 10-minute conversational podcast covering AI breakthroughs, tech startups, and software news with interactive live transcripts in B2 English." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" />
@@ -18,6 +18,8 @@
       --accent-cyan: #00f2fe;
       --accent-violet: #7928ca;
       --accent-magenta: #ff0080;
+      --alex-color: #38bdf8;
+      --sarah-color: #c084fc;
       --text-main: #f3f4f6;
       --text-muted: #9ca3af;
       --text-dim: #6b7280;
@@ -140,9 +142,9 @@
 
     /* Hero Section */
     .hero {
-      padding: 56px 0 36px;
+      padding: 48px 0 28px;
       display: grid;
-      grid-template-columns: 320px 1fr;
+      grid-template-columns: 300px 1fr;
       gap: 48px;
       align-items: center;
     }
@@ -168,10 +170,10 @@
 
     .hero-content h1 {
       font-family: 'Outfit', sans-serif;
-      font-size: 42px;
+      font-size: 40px;
       font-weight: 800;
       line-height: 1.15;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       letter-spacing: -1px;
       background: linear-gradient(135deg, #ffffff 40%, var(--accent-cyan) 100%);
       -webkit-background-clip: text;
@@ -179,9 +181,9 @@
     }
 
     .hero-content p {
-      font-size: 17px;
+      font-size: 16px;
       color: var(--text-muted);
-      margin-bottom: 28px;
+      margin-bottom: 24px;
       max-width: 600px;
     }
 
@@ -196,7 +198,7 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 11px 20px;
+      padding: 10px 18px;
       border-radius: 12px;
       font-size: 14px;
       font-weight: 600;
@@ -214,7 +216,6 @@
     .btn-spotify:hover {
       background: #1ed760;
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(29, 185, 84, 0.4);
     }
 
     .btn-apple {
@@ -243,7 +244,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 24px;
+      margin: 20px 0;
       overflow-x: auto;
       padding-bottom: 6px;
     }
@@ -277,8 +278,8 @@
       backdrop-filter: blur(20px);
       border: 1px solid var(--border-glow);
       border-radius: 24px;
-      padding: 32px;
-      margin: 24px 0 48px;
+      padding: 28px;
+      margin-bottom: 40px;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
     }
 
@@ -301,7 +302,7 @@
 
     .episode-title {
       font-family: 'Outfit', sans-serif;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 700;
       color: #fff;
       line-height: 1.3;
@@ -323,38 +324,9 @@
       font-weight: 500;
     }
 
-    /* Animated Soundwave */
-    .soundwave {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      height: 32px;
-      margin-bottom: 20px;
-    }
-
-    .wave-bar {
-      flex: 1;
-      height: 8px;
-      background: linear-gradient(180deg, var(--accent-cyan), var(--accent-violet));
-      border-radius: 4px;
-      transition: height 0.2s ease;
-      opacity: 0.6;
-    }
-
-    .playing .wave-bar {
-      animation: soundwaveAnim 1.2s ease-in-out infinite alternate;
-      opacity: 0.95;
-    }
-
-    @keyframes soundwaveAnim {
-      0% { height: 6px; }
-      50% { height: 28px; }
-      100% { height: 12px; }
-    }
-
     /* Progress & Controls */
     .progress-container {
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     .progress-bar-wrapper {
@@ -404,6 +376,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 24px;
     }
 
     .main-controls {
@@ -416,7 +389,7 @@
       background: none;
       border: none;
       color: var(--text-muted);
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
       padding: 8px 12px;
@@ -432,12 +405,12 @@
     }
 
     .play-btn {
-      width: 58px;
-      height: 58px;
+      width: 54px;
+      height: 54px;
       background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
       color: #fff;
       border-radius: 50%;
-      font-size: 22px;
+      font-size: 20px;
       box-shadow: 0 8px 25px rgba(0, 242, 254, 0.4);
       display: flex;
       align-items: center;
@@ -454,7 +427,7 @@
     .secondary-controls {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
     }
 
     .speed-btn {
@@ -470,6 +443,139 @@
     }
     .speed-btn:hover {
       background: rgba(255, 255, 255, 0.15);
+    }
+
+    .autoscroll-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+      border: 1px solid var(--border-subtle);
+    }
+    .autoscroll-toggle.active {
+      color: var(--accent-cyan);
+      border-color: rgba(0, 242, 254, 0.3);
+      background: rgba(0, 242, 254, 0.08);
+    }
+
+    /* Live Synchronized Transcript Box (Karaoke Teleprompter) */
+    .transcript-wrapper {
+      background: rgba(10, 14, 24, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+    }
+
+    .transcript-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 10px;
+    }
+
+    .transcript-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .transcript-container {
+      max-height: 280px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 10px 6px;
+      scroll-behavior: smooth;
+    }
+
+    .dialogue-turn {
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      opacity: 0.6;
+    }
+
+    .dialogue-turn:hover {
+      opacity: 0.9;
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateX(4px);
+    }
+
+    .dialogue-turn.active {
+      opacity: 1;
+      background: rgba(18, 26, 44, 0.95);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.15);
+      transform: scale(1.01);
+    }
+
+    .dialogue-turn.active.sarah-turn {
+      border-color: var(--sarah-color);
+      box-shadow: 0 0 20px rgba(192, 132, 252, 0.15);
+    }
+
+    .turn-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .speaker-tag {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .speaker-alex {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--alex-color);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .speaker-sarah {
+      background: rgba(192, 132, 252, 0.15);
+      color: var(--sarah-color);
+      border: 1px solid rgba(192, 132, 252, 0.3);
+    }
+
+    .turn-time {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: monospace;
+    }
+
+    .turn-text {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .dialogue-turn.active .turn-text {
+      color: #ffffff;
+      font-weight: 500;
     }
 
     /* Chapters & Learning Grid */
@@ -695,7 +801,7 @@
         <!-- Episode pills dynamically added -->
       </div>
 
-      <!-- Web Audio Player -->
+      <!-- Web Audio Player with Synchronized Transcript -->
       <section class="player-card">
         <div class="player-header">
           <div>
@@ -706,10 +812,6 @@
             <span class="badge" id="epDuration">00:10:43</span>
             <span class="badge" style="color: #4ade80;">2-Host Dialogue</span>
           </div>
-        </div>
-
-        <div class="soundwave" id="soundwaveContainer">
-          <!-- 36 sound bars dynamically generated -->
         </div>
 
         <audio id="audioElement" preload="metadata"></audio>
@@ -735,6 +837,22 @@
 
           <div class="secondary-controls">
             <button class="speed-btn" id="speedBtn">1.0x</button>
+            <div class="autoscroll-toggle active" id="autoscrollToggle" title="Auto-scroll transcript with speech">
+              <span>📌 Auto-Scroll: ON</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Synchronized Karaoke Transcript -->
+        <div class="transcript-wrapper">
+          <div class="transcript-header">
+            <span class="transcript-title">
+              <span style="color: var(--accent-cyan);">💬</span> Live Spoken Transcript (Click any line to jump)
+            </span>
+            <span style="font-size: 11px; color: var(--text-dim);">Real-Time Sync</span>
+          </div>
+          <div class="transcript-container" id="transcriptContainer">
+            <!-- Timed dialogue turns dynamically injected -->
           </div>
         </div>
       </section>
@@ -767,7 +885,6 @@
   <div class="toast" id="toast">📋 RSS Feed URL copied to clipboard!</div>
 
   <script>
-    // Embedded initial manifest for instant 0-second offline/fallback rendering
     const EMBEDDED_MANIFEST = [
       {
         "guid": "ep_20260816_podcast_e865d2",
@@ -776,6 +893,7 @@
         "audio_url": "https://monurium.github.io/daily-podcast-generator/episodes/ep_20260816_podcast_e865d2.mp3",
         "file_size": 3949272,
         "duration_formatted": "00:10:43",
+        "script": "Alex: Sarah, good morning! And welcome back to the show. I have to say, the tech news cycle today is absolutely wild. It feels like we need a scorecard just to keep up.\n\nSarah: Good morning, Alex! I completely agree. It’s one of those days where you blink and miss three major announcements. I’m excited to dig into the details with you.\n\nAlex: Let’s start with the big one that everyone is talking about. Anthropic has released more details about how Claude’s new watermarks will work. I mean, watermarks on text? How does that even function? It’s not like a photo where you can slap a logo on it.\n\nSarah: That’s the million-dollar question, isn’t it? It’s actually a really clever piece of technology. Essentially, they are embedding a statistical pattern into the text that the model generates. It’s not visible to the human eye, but it’s detectable by a specific algorithm.\n\nAlex: So, it’s like a secret code hidden in the words? That sounds like something out of a spy movie.\n\nSarah: Exactly! The system subtly influences the model’s word choices. For example, if there are two equally good words to use in a sentence, the model might pick one over the other based on a secret \"green list\" of words. When you analyze a long enough piece of text, that pattern reveals the watermark.\n\nAlex: Okay, that is genuinely fascinating. But I have to ask the obvious question. Can you just edit the text and remove it? If I change a few words, doesn't that break the pattern?\n\nSarah: That’s the tricky part. Anthropic acknowledges that heavy editing can degrade the watermark. But they are designing it to be resilient. If you change a few words here and there, the signal is still strong enough to be detected. It’s only when you rewrite the entire thing or translate it that you might lose it.\n\nAlex: So, it’s more of a deterrent than a perfect solution. But what about code? The summary specifically mentioned code. That seems even harder to watermark.\n\nSarah: Right, because code has to be functional. You can’t just swap out a variable name for a \"green list\" word if it breaks the program. Anthropic is working on a separate method for code, likely involving comment placement or specific formatting choices that don't affect execution. It’s still in the early stages, but it’s a huge area of interest.\n\nAlex: It’s a fascinating arms race. And speaking of big moves, I saw that SpaceX officially closed its acquisition of Cursor. That feels like a massive shift for the AI coding world.\n\nSarah: It’s a huge deal. Cursor is one of the most popular AI-powered code editors out there. Developers love it because it can autocomplete entire functions or refactor code with just a text prompt. Bringing that in-house at SpaceX is a massive signal.\n\nAlex: Why would a rocket company want an AI code editor? I mean, I get that they have software, but it seems like a strange fit.\n\nSarah: Well, SpaceX is a software company as much as it is a rocket company. They build complex simulations, guidance systems, and ground control software. By owning Cursor, they get direct control over the tools their engineers use. They can customize it for their specific needs and also monetize it for other companies. It’s a strategic talent and technology grab.\n\nAlex: It’s definitely a power move. But while SpaceX is acquiring, Google is going in a different direction. I read that they will now allow users to remove the visible watermark from their AI generations. That seems counterintuitive, doesn't it?\n\nSarah: It seems that way at first, but it’s actually a smart user experience play. The visible watermark—that little \"Gemini\" label—can be annoying if you want to use the image for a presentation or a personal project. So, they are giving users the option to turn it off.\n\nAlex: But then, how do we know it’s AI-generated? Are we just opening the floodgates for misinformation?\n\nSarah: Here’s the key detail: They are keeping the invisible metadata and a cryptographic benchmark embedded in the file. So, even if you remove the visible label, the file still carries a secret signature that identifies it as AI-generated. It’s like a hidden ID card that you can’t see but is always there.\n\nAlex: Ah, so it’s a compromise. You get clean images, but the forensic trail remains. That’s actually a pretty balanced approach. But let’s shift gears to a more personal topic. We talked about watermarks and acquisitions, but there’s a guide out there about how to tell if your AI accounts have been hacked. That’s a scary thought.\n\nSarah: It’s a real concern. As we put more of our data into these platforms, they become juicier targets for hackers. The guide suggests checking your login history for unfamiliar locations or devices. Also, look out for strange prompts in your chat history that you don't remember sending.\n\nAlex: I guess that’s the digital equivalent of checking your front door for scratches.\n\nSarah: Precisely. And you should also check if your API keys have been used in unusual ways. If you have a developer account, hackers might be using your credits to run their own models. It’s a good reminder to enable two-factor authentication on all these platforms.\n\nAlex: Good advice. Now, let’s lighten things up a bit. I saw a headline about a four-foot-tall robot from China becoming the next big influencer. The Unitree G1?\n\nSarah: Oh, yes! The Unitree G1 is having a moment. It’s a humanoid robot that is relatively affordable compared to others, and it has a ton of personality. There are videos of it dancing, walking dogs, and even doing backflips. It’s charming in a weird way.\n\nAlex: It’s definitely viral bait. But the article asks a serious question: Can it ever hold down a real job? I mean, dancing is fun, but can it stock shelves?\n\nSarah: That’s the real test. The G1 is great for research and entertainment, but for industrial use, you need endurance and precision. Right now, it’s more of a platform for developers to experiment with. The real jobs are probably still a few years away, but it’s a fascinating glimpse into the future of robotics.\n\nAlex: From robots to the people who critique AI. I saw a piece about Tim O’Reilly, the tech visionary. He says the big AI labs don’t get what people want.\n\nSarah: Tim O’Reilly is a legend in the tech publishing world. His argument is that the big labs are focused on building these massive, closed-off models, but they are missing the real use cases. He believes in open-source AI, where everyone can contribute and customize the models to their specific needs.\n\nAlex: So, he thinks the future is smaller, more specialized models that people can run themselves?\n\nSarah: Exactly. He loves AI, but he wants it to be accessible and transparent. He’s worried that a few big companies are controlling the narrative and the technology. It’s a really important counterpoint to the \"bigger is better\" mentality.\n\nAlex: That leads perfectly into our final story. There’s a piece about a \"Safety Reckoning Inside OpenAI.\" What’s happening there?\n\nSarah: This is a fascinating and slightly concerning story. Apparently, there was a \"rogue agent hack\" that was a watershed moment for AI safety. It sparked a lot of internal questions about the culture that allowed it to happen. It seems like there’s a tension between moving fast and ensuring safety.\n\nAlex: It sounds like a classic tech dilemma. You want to push the boundaries, but you also don't want to create something that can be easily exploited.\n\nSarah: Right. The story suggests that some employees are worried that the push for commercial success is overshadowing the need for rigorous safety testing. It’s a reminder that even the most advanced AI labs are still figuring out how to handle these powerful tools responsibly.\n\nAlex: Well, it’s a lot to think about. We’ve covered watermarks, acquisitions, robots, and safety. It’s been a packed show.\n\nSarah: It always is, Alex. The world of AI is moving at lightning speed, and we’ll be here every day to break it down for you.\n\nAlex: That’s all for today, folks. Thanks for tuning in to the Daily Tech Brief. We’ll see you tomorrow with more updates.\n\nSarah: Take care, everyone!",
         "chapters": [
           { "timestamp": "00:00", "seconds": 0, "title": "Introduction & Daily Overview" },
           { "timestamp": "00:28", "seconds": 28, "title": "Google & Anthropic AI Watermarking" },
@@ -800,6 +918,7 @@
         "audio_url": "https://monurium.github.io/daily-podcast-generator/episodes/ep_20260815_daily_tech_ai_dialogue.mp3",
         "file_size": 3812868,
         "duration_formatted": "00:10:42",
+        "script": "Alex: Sarah, it is great to see you. I have to say, I have been refreshing my news feed all morning because there is so much happening in the world of tech and AI.\n\nSarah: Alex, I am right there with you. It feels like we have a jam-packed show today. We have everything from space acquisitions to robot influencers, and even some big news about how we will know if a picture is real or made by a computer.\n\nAlex: Let’s dive straight in. I want to start with the big one that everyone is talking about. I saw that SpaceX has officially closed its deal to buy Cursor. That is the AI coding tool that so many developers love.\n\nSarah: Yes, that is a major move. For our listeners, Cursor is essentially a code editor that uses AI to help programmers write software much faster. Think of it like having a super-smart assistant that predicts what code you want to type next and helps you fix bugs. Now, it is officially part of SpaceX.\n\nAlex: It is fascinating to see a rocket company buying an AI software company. I guess they want to make their engineers even more efficient. But let’s pivot to something that affects all of us, especially with all the AI images we see online. I saw a headline about Google letting people remove watermarks from AI images.\n\nSarah: Right, but there is a very important catch there. Google is allowing users to turn off the visible watermark on images generated by their AI tools. However, they are keeping an invisible watermark that is embedded in the file itself. It is like a secret code that you cannot see with your eyes, but software can detect it.\n\nAlex: So, it is like a hidden fingerprint. That makes sense. They want to make it easier for people to use the images without that ugly label, but they still want to maintain a way to verify if something is AI-generated for safety and trust reasons.\n\nSarah: Exactly. This ties into our next story about Anthropic, the company behind the Claude AI model. They have been sharing more details about how their own watermarking works. They are trying to figure out how to make it robust enough that you cannot just crop the image or edit it slightly to remove the mark.\n\nAlex: I was reading about that. It is a constant battle, right? You put a watermark on, and then someone tries to hide it by changing the colors or adding a filter. Anthropic is working on making sure their watermark can survive those kinds of edits.\n\nSarah: It is a technological arms race. They are also talking about how this affects code. If Claude generates a piece of code, how do you watermark that? It is very different from watermarking a picture. This is a huge challenge for the industry right now.\n\nAlex: Let’s shift gears to something a bit more fun. I saw a story about a four-foot-tall robot from China called the Unitree G1 that is becoming an internet celebrity.\n\nSarah: Oh, I love this story. The G1 is a humanoid robot that is relatively affordable compared to others. It has been showing up in videos doing flips, dancing, and just being generally charming. It has become a huge hit on social media.\n\nAlex: It is definitely an influencer, but the big question is, can it hold down a real job? Can it do actual work in a warehouse or a factory?\n\nSarah: That is the million-dollar question. Right now, it is great for entertainment and demonstrations, but the company is pushing to show it doing more practical tasks. The hope is that these robots can one day handle repetitive or dangerous jobs. But we are still a few years away from that being a common sight.\n\nAlex: Speaking of the future of work, there is a story about a tech visionary, Tim O’Reilly, who says the big AI labs don’t actually get what people want. He is a big name in the tech publishing world.\n\nSarah: Yes, Tim O’Reilly is a very influential figure. His main point is that the large AI companies are focused on building these massive, closed-off models, but he believes the real future is in open source. He thinks people want more control and transparency, and that open-source AI will be what truly changes the world.\n\nAlex: It is a big debate. Do we want a few mega-corporations controlling the most powerful technology ever created, or do we want it to be open for everyone to use and improve? It is a really important conversation.\n\nAlex: Now, I have to ask about something a little scary. There is a report about a safety reckoning inside OpenAI. Apparently, there was a hack involving a \"rogue agent.\"\n\nSarah: This is a big deal for cybersecurity. In the AI world, an \"agent\" is a system that can perform tasks on its own, like browsing the web or sending emails. The report suggests that one of these agents was compromised and did something it wasn’t supposed to do. This has sparked a lot of internal questions at OpenAI about their safety culture and how they test these systems.\n\nAlex: That sounds like a wake-up call for the entire industry. If AI agents are going to have access to our emails and bank accounts, we need to be absolutely sure they are secure.\n\nSarah: Absolutely. It highlights the need for very strict testing and safety protocols before these tools are widely released.\n\nAlex: Let’s talk about money now. I saw two big financial stories. One is about PayPal potentially being sold, and the other is about fusion startups raising billions.\n\nSarah: Let’s do the business news first. PayPal is reportedly in talks to be acquired by Stripe, which is another major payment company, and a private equity firm called Advent. This is a huge deal in the fintech world. PayPal has been struggling a bit lately, and a new CEO is trying to turn things around, but a sale would be a massive change.\n\nAlex: It is interesting to see these giants consolidating. And on the energy side, fusion startups have raised over seven billion dollars. That is a lot of money for a technology that is still in the experimental phase.\n\nSarah: It is. Fusion is the same process that powers the sun, and if we can harness it on Earth, we would have unlimited, clean energy. The majority of that money is going to a few key players who are making significant progress. It is a long shot, but the potential payoff is incredible.\n\nAlex: Let’s also touch on a practical topic. There is a guide out there on how to tell if your AI platform accounts have been hacked. That is something we all need to know.\n\nSarah: Definitely. The guide suggests checking your login history for any unfamiliar devices or locations. You should also look for any unusual activity, like messages sent that you didn’t write or changes to your account settings. It is also a good idea to enable two-factor authentication, which adds an extra layer of security beyond just a password.\n\nAlex: Great advice. And finally, there is a quirky story about a prediction market that banned teenagers. Why would they do that?\n\nSarah: Prediction markets are platforms where people bet on the outcome of future events, like elections or sports games. The CEO of Novig, this new market, says they want to be seen as a serious, regulated platform. To avoid legal issues and keep things safe, they have decided to only allow adults to use it. It is a way to build trust and avoid the problems that other, less regulated markets have faced.\n\nAlex: That makes sense. It is all about credibility. Well, Sarah, we have covered a lot of ground today. From AI watermarks to robot dancers and billion-dollar deals.\n\nSarah: We really have. It is an exciting time in technology. The key takeaway for me is that we are seeing the infrastructure for the future being built right now, from secure AI to new energy sources.\n\nAlex: And we will be here to break it all down for you. Thanks for joining us on today’s episode. We will see you next time.\n\nSarah: Take care, everyone!",
         "chapters": [
           { "timestamp": "00:00", "seconds": 0, "title": "Introduction & Daily Overview" },
           { "timestamp": "00:15", "seconds": 15, "title": "Unitree G1 Humanoid Robot Phenomenon" },
@@ -823,15 +942,6 @@
       }
     ];
 
-    // Soundwave visualizer bars
-    const soundwave = document.getElementById('soundwaveContainer');
-    for (let i = 0; i < 36; i++) {
-      const bar = document.createElement('div');
-      bar.className = 'wave-bar';
-      bar.style.animationDelay = `${(i * 0.05).toFixed(2)}s`;
-      soundwave.appendChild(bar);
-    }
-
     const audio = document.getElementById('audioElement');
     const playBtn = document.getElementById('playBtn');
     const progressBar = document.getElementById('progressBar');
@@ -844,13 +954,22 @@
     const copyRssBtn = document.getElementById('copyRssBtn');
     const toast = document.getElementById('toast');
     const episodeSelector = document.getElementById('episodeSelector');
+    const transcriptContainer = document.getElementById('transcriptContainer');
+    const autoscrollToggle = document.getElementById('autoscrollToggle');
 
     let allEpisodes = EMBEDDED_MANIFEST;
     let currentEpisode = allEpisodes[0];
+    let timedTurns = [];
+    let isAutoscrollEnabled = true;
     const speeds = [1.0, 1.25, 1.5, 2.0];
     let speedIdx = 0;
 
-    // Load Manifest from server or use embedded
+    autoscrollToggle.addEventListener('click', () => {
+      isAutoscrollEnabled = !isAutoscrollEnabled;
+      autoscrollToggle.classList.toggle('active', isAutoscrollEnabled);
+      autoscrollToggle.querySelector('span').textContent = isAutoscrollEnabled ? '📌 Auto-Scroll: ON' : '📌 Auto-Scroll: OFF';
+    });
+
     async function loadEpisodes() {
       try {
         let res = await fetch('episodes_manifest.json');
@@ -887,20 +1006,54 @@
       });
     }
 
+    function parseScriptToTimedTurns(scriptText) {
+      if (!scriptText) return [];
+      const rawBlocks = scriptText.split('\n\n').map(b => b.trim()).filter(b => b.length > 0);
+      const turns = [];
+      let cumSec = 0.0;
+
+      rawBlocks.forEach((block, idx) => {
+        let speaker = 'Alex';
+        let cleanText = block;
+        if (block.startsWith('Alex:')) {
+          speaker = 'Alex';
+          cleanText = block.substring(5).trim();
+        } else if (block.startsWith('Sarah:')) {
+          speaker = 'Sarah';
+          cleanText = block.substring(6).trim();
+        }
+
+        const words = cleanText.split(/\s+/).length;
+        const duration = (words / 130.0) * 60 + 0.45;
+        const startSec = cumSec;
+        const endSec = cumSec + duration;
+
+        turns.push({
+          id: `turn_${idx}`,
+          speaker: speaker,
+          text: cleanText,
+          startSec: startSec,
+          endSec: endSec,
+          timeFormatted: formatTime(startSec)
+        });
+
+        cumSec += duration;
+      });
+
+      return turns;
+    }
+
     function setupPlayer(ep) {
       currentEpisode = ep;
       document.getElementById('epTitle').textContent = ep.title;
       document.getElementById('epDate').textContent = ep.pub_date ? ep.pub_date.split(' ').slice(0, 4).join(' ') : 'LATEST EPISODE';
       document.getElementById('epDuration').textContent = ep.duration_formatted || '10:00';
       
-      // Determine working relative path vs absolute audio URL
       const relativeAudioSrc = `episodes/${ep.guid}.mp3`;
       audio.src = relativeAudioSrc;
       
-      // Automatic fallback if relative path has issues
       audio.onerror = () => {
         if (ep.audio_url && audio.src !== ep.audio_url) {
-          console.log('Falling back to absolute audio URL:', ep.audio_url);
           audio.src = ep.audio_url;
         }
       };
@@ -909,15 +1062,81 @@
       progressFill.style.width = '0%';
       currentTimeEl.textContent = '00:00';
 
+      timedTurns = parseScriptToTimedTurns(ep.script);
+      renderLiveTranscript(timedTurns);
       renderChapters(ep.chapters || []);
       renderVocab(ep.vocabulary || []);
+    }
+
+    function renderLiveTranscript(turns) {
+      transcriptContainer.innerHTML = '';
+      if (!turns || turns.length === 0) {
+        transcriptContainer.innerHTML = '<p style="color: var(--text-dim); padding: 12px;">Transcript not available for this episode.</p>';
+        return;
+      }
+
+      turns.forEach((turn, idx) => {
+        const item = document.createElement('div');
+        item.className = `dialogue-turn ${turn.speaker === 'Sarah' ? 'sarah-turn' : ''} ${idx === 0 ? 'active' : ''}`;
+        item.id = turn.id;
+        item.dataset.start = turn.startSec;
+        item.dataset.end = turn.endSec;
+
+        const speakerClass = turn.speaker === 'Alex' ? 'speaker-alex' : 'speaker-sarah';
+        const speakerIcon = turn.speaker === 'Alex' ? '👨 Alex' : '👩 Sarah';
+
+        item.innerHTML = `
+          <div class="turn-header">
+            <span class="speaker-tag ${speakerClass}">${speakerIcon}</span>
+            <span class="turn-time">${turn.timeFormatted}</span>
+          </div>
+          <p class="turn-text">${turn.text}</p>
+        `;
+
+        item.onclick = () => {
+          audio.currentTime = turn.startSec;
+          if (audio.paused) {
+            audio.play().catch(e => console.log('Autoplay policy', e));
+          }
+          highlightActiveTurn(turn.startSec);
+        };
+
+        transcriptContainer.appendChild(item);
+      });
+    }
+
+    function highlightActiveTurn(currentTime) {
+      if (!timedTurns || timedTurns.length === 0) return;
+
+      let activeIndex = 0;
+      for (let i = 0; i < timedTurns.length; i++) {
+        if (currentTime >= timedTurns[i].startSec) {
+          activeIndex = i;
+        } else {
+          break;
+        }
+      }
+
+      const turnElements = document.querySelectorAll('.dialogue-turn');
+      turnElements.forEach((el, idx) => {
+        if (idx === activeIndex) {
+          if (!el.classList.contains('active')) {
+            el.classList.add('active');
+            if (isAutoscrollEnabled) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+          }
+        } else {
+          el.classList.remove('active');
+        }
+      });
     }
 
     function renderChapters(chapters) {
       const list = document.getElementById('chapterList');
       list.innerHTML = '';
       if (!chapters || chapters.length === 0) {
-        list.innerHTML = '<p style="color: var(--text-dim); font-size: 14px;">No chapter markers available for this episode.</p>';
+        list.innerHTML = '<p style="color: var(--text-dim); font-size: 14px;">No chapter markers available.</p>';
         return;
       }
 
@@ -979,7 +1198,6 @@
       if (audio.paused) {
         audio.play().catch(err => {
           console.error('Playback error:', err);
-          // Try fallback url
           if (currentEpisode && currentEpisode.audio_url && audio.src !== currentEpisode.audio_url) {
             audio.src = currentEpisode.audio_url;
             audio.play();
@@ -992,12 +1210,10 @@
 
     audio.addEventListener('play', () => {
       playBtn.textContent = '⏸';
-      soundwave.classList.add('playing');
     });
 
     audio.addEventListener('pause', () => {
       playBtn.textContent = '▶';
-      soundwave.classList.remove('playing');
     });
 
     audio.addEventListener('timeupdate', () => {
@@ -1006,6 +1222,7 @@
         progressFill.style.width = `${pct}%`;
         currentTimeEl.textContent = formatTime(audio.currentTime);
         totalTimeEl.textContent = formatTime(audio.duration);
+        highlightActiveTurn(audio.currentTime);
         highlightChapter(audio.currentTime);
       }
     });
