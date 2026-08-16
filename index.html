@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Pulse Daily - Automated AI & Tech Podcast for English Learners</title>
+  <meta name="description" content="Daily 10-minute conversational podcast covering AI breakthroughs, tech startups, and software news in engaging B2 English." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-card: rgba(18, 22, 34, 0.75);
+      --bg-card-hover: rgba(28, 34, 52, 0.85);
+      --border-glow: rgba(112, 0, 255, 0.25);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #00f2fe;
+      --accent-violet: #7928ca;
+      --accent-magenta: #ff0080;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Ambient Lighting Background */
+    .ambient-glow-1 {
+      position: fixed;
+      top: -150px;
+      left: -150px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(121, 40, 202, 0.25) 0%, rgba(0,0,0,0) 70%);
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .ambient-glow-2 {
+      position: fixed;
+      top: 40%;
+      right: -200px;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(0, 242, 254, 0.18) 0%, rgba(0,0,0,0) 70%);
+      border-radius: 50%;
+      filter: blur(90px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Navbar */
+    header {
+      padding: 28px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+    }
+
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #4ade80;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      background: #4ade80;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #4ade80;
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 56px 0 36px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+
+    .cover-wrapper {
+      position: relative;
+    }
+
+    .cover-img {
+      width: 100%;
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(121, 40, 202, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+    }
+
+    .cover-wrapper:hover .cover-img {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(0, 242, 254, 0.4);
+    }
+
+    .hero-content h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, #ffffff 40%, var(--accent-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-content p {
+      font-size: 17px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+      max-width: 600px;
+    }
+
+    /* Action Buttons */
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-spotify {
+      background: #1db954;
+      color: #000;
+      box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+    }
+    .btn-spotify:hover {
+      background: #1ed760;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(29, 185, 84, 0.4);
+    }
+
+    .btn-apple {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    .btn-apple:hover {
+      background: rgba(255, 255, 255, 0.18);
+      transform: translateY(-2px);
+    }
+
+    .btn-rss {
+      background: rgba(121, 40, 202, 0.2);
+      color: #d8b4fe;
+      border-color: rgba(121, 40, 202, 0.4);
+    }
+    .btn-rss:hover {
+      background: rgba(121, 40, 202, 0.35);
+      transform: translateY(-2px);
+    }
+
+    /* Audio Player Card */
+    .player-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glow);
+      border-radius: 24px;
+      padding: 32px;
+      margin: 24px 0 48px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .player-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+    }
+
+    .episode-meta-tag {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-cyan);
+      margin-bottom: 6px;
+    }
+
+    .episode-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .meta-badges {
+      display: flex;
+      gap: 8px;
+    }
+
+    .badge {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Animated Soundwave */
+    .soundwave {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 32px;
+      margin-bottom: 20px;
+    }
+
+    .wave-bar {
+      flex: 1;
+      height: 8px;
+      background: linear-gradient(180deg, var(--accent-cyan), var(--accent-violet));
+      border-radius: 4px;
+      transition: height 0.2s ease;
+      opacity: 0.6;
+    }
+
+    .playing .wave-bar {
+      animation: soundwaveAnim 1.2s ease-in-out infinite alternate;
+      opacity: 0.95;
+    }
+
+    @keyframes soundwaveAnim {
+      0% { height: 6px; }
+      50% { height: 28px; }
+      100% { height: 12px; }
+    }
+
+    /* Progress & Controls */
+    .progress-container {
+      margin-bottom: 20px;
+    }
+
+    .progress-bar-wrapper {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-violet));
+      border-radius: 4px;
+      position: relative;
+    }
+
+    .progress-handle {
+      position: absolute;
+      right: -6px;
+      top: -4px;
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.8);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .progress-bar-wrapper:hover .progress-handle {
+      opacity: 1;
+    }
+
+    .time-indicators {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-dim);
+      font-weight: 500;
+      margin-top: 8px;
+    }
+
+    .controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .main-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .ctrl-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ctrl-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .play-btn {
+      width: 58px;
+      height: 58px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+      color: #fff;
+      border-radius: 50%;
+      font-size: 22px;
+      box-shadow: 0 8px 25px rgba(0, 242, 254, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: none;
+    }
+    .play-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 10px 30px rgba(0, 242, 254, 0.6);
+    }
+
+    .secondary-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .speed-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .speed-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Chapters & Learning Grid */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 56px;
+    }
+
+    .section-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 28px;
+    }
+
+    .section-card h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chapter-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .chapter-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .chapter-item:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(0, 242, 254, 0.3);
+      transform: translateX(4px);
+    }
+    .chapter-item.active {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 242, 254, 0.1);
+    }
+
+    .chapter-time {
+      font-family: monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      background: rgba(0, 242, 254, 0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .chapter-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-main);
+      margin-left: 12px;
+      flex: 1;
+    }
+
+    /* Vocabulary Cards */
+    .vocab-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .vocab-card {
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      transition: all 0.2s;
+    }
+    .vocab-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(121, 40, 202, 0.4);
+    }
+
+    .vocab-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .vocab-word {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #d8b4fe;
+    }
+
+    .vocab-type {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    .vocab-def {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--accent-cyan);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 100;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 36px 0;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+
+    @media (max-width: 860px) {
+      .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .cover-wrapper {
+        max-width: 240px;
+        margin: 0 auto;
+      }
+      .button-group {
+        justify-content: center;
+      }
+      .grid-2col {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow-1"></div>
+  <div class="ambient-glow-2"></div>
+
+  <div class="container">
+    <header>
+      <a href="#" class="brand-logo">
+        <div class="brand-icon">🎙️</div>
+        <span class="brand-title">AI Pulse Daily</span>
+      </a>
+      <div class="live-badge">
+        <span class="pulse-dot"></span>
+        Spotify & Apple Podcasts
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero -->
+      <section class="hero">
+        <div class="cover-wrapper">
+          <img src="cover.jpg" alt="AI Pulse Daily Podcast Artwork" class="cover-img" id="podcastCover" />
+        </div>
+        <div class="hero-content">
+          <h1>Master AI & Tech English Every Day</h1>
+          <p>Your automated 10-minute conversational podcast covering breakthrough AI research, startups, and software engineering in articulate B2 English.</p>
+          <div class="button-group">
+            <a href="https://open.spotify.com/" target="_blank" class="btn btn-spotify">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.498 17.306c-.215.352-.676.463-1.028.248-2.817-1.721-6.364-2.111-10.542-1.157-.402.092-.801-.16-.893-.562-.092-.403.16-.802.562-.894 4.571-1.044 8.492-.599 11.653 1.337.352.215.464.676.248 1.028zm1.468-3.262c-.27.441-.847.58-1.288.31-3.225-1.982-8.142-2.556-11.956-1.398-.497.151-1.024-.134-1.175-.631-.151-.498.134-1.024.631-1.176 4.364-1.325 9.787-.687 13.478 1.583.441.27.58.847.31 1.312zm.126-3.41c-3.867-2.296-10.248-2.508-13.941-1.387-.593.18-1.22-.162-1.4-.755-.18-.593.162-1.22.755-1.4 4.246-1.289 11.294-1.042 15.753 1.605.533.316.707 1.011.391 1.544-.316.533-1.011.707-1.558.393z"/></svg>
+              Listen on Spotify
+            </a>
+            <a href="https://podcasts.apple.com/" target="_blank" class="btn btn-apple">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.93-2.85-.9.04-2 .6-2.65 1.35-.58.66-1.08 1.73-.95 2.76 1.01.08 2.05-.51 2.67-1.26z"/></svg>
+              Apple Podcasts
+            </a>
+            <button class="btn btn-rss" id="copyRssBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg>
+              Copy RSS Feed
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Web Audio Player -->
+      <section class="player-card">
+        <div class="player-header">
+          <div>
+            <div class="episode-meta-tag" id="epDate">LATEST EPISODE</div>
+            <h2 class="episode-title" id="epTitle">Loading latest episode...</h2>
+          </div>
+          <div class="meta-badges">
+            <span class="badge" id="epDuration">00:10:42</span>
+            <span class="badge" style="color: #4ade80;">2-Host Co-Hosts</span>
+          </div>
+        </div>
+
+        <div class="soundwave" id="soundwaveContainer">
+          <!-- 32 sound bars dynamically generated -->
+        </div>
+
+        <audio id="audioElement" preload="metadata"></audio>
+
+        <div class="progress-container">
+          <div class="progress-bar-wrapper" id="progressBar">
+            <div class="progress-fill" id="progressFill">
+              <div class="progress-handle"></div>
+            </div>
+          </div>
+          <div class="time-indicators">
+            <span id="currentTime">00:00</span>
+            <span id="totalTime">00:00</span>
+          </div>
+        </div>
+
+        <div class="controls-row">
+          <div class="main-controls">
+            <button class="ctrl-btn" id="rewindBtn" title="Rewind 15s">↺ 15s</button>
+            <button class="play-btn" id="playBtn" title="Play / Pause">▶</button>
+            <button class="ctrl-btn" id="forwardBtn" title="Forward 30s">30s ↻</button>
+          </div>
+
+          <div class="secondary-controls">
+            <button class="speed-btn" id="speedBtn">1.0x</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Chapters and Learning Grid -->
+      <section class="grid-2col">
+        <!-- Interactive Chapters -->
+        <div class="section-card">
+          <h2>⏱️ Episode Chapters & Timestamps</h2>
+          <div class="chapter-list" id="chapterList">
+            <!-- Dynamic chapters -->
+          </div>
+        </div>
+
+        <!-- Key Vocabulary -->
+        <div class="section-card">
+          <h2>📚 Featured B2 Vocabulary</h2>
+          <div class="vocab-grid" id="vocabList">
+            <!-- Dynamic vocabulary -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>AI Pulse Daily • Automated with DeepSeek-V3 & Google Gemini Flash TTS • Hosted on GitHub Pages</p>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast">📋 RSS Feed URL copied to clipboard!</div>
+
+  <script>
+    // Soundwave visualizer bars
+    const soundwave = document.getElementById('soundwaveContainer');
+    for (let i = 0; i < 36; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'wave-bar';
+      bar.style.animationDelay = `${(i * 0.05).toFixed(2)}s`;
+      soundwave.appendChild(bar);
+    }
+
+    const audio = document.getElementById('audioElement');
+    const playBtn = document.getElementById('playBtn');
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+    const currentTimeEl = document.getElementById('currentTime');
+    const totalTimeEl = document.getElementById('totalTime');
+    const speedBtn = document.getElementById('speedBtn');
+    const rewindBtn = document.getElementById('rewindBtn');
+    const forwardBtn = document.getElementById('forwardBtn');
+    const copyRssBtn = document.getElementById('copyRssBtn');
+    const toast = document.getElementById('toast');
+
+    let currentEpisode = null;
+    const speeds = [1.0, 1.25, 1.5, 2.0];
+    let speedIdx = 0;
+
+    // Load Manifest
+    async function loadEpisodes() {
+      try {
+        const res = await fetch('episodes_manifest.json');
+        const episodes = await res.json();
+        if (episodes && episodes.length > 0) {
+          currentEpisode = episodes[0];
+          setupPlayer(currentEpisode);
+        }
+      } catch (err) {
+        console.error('Failed to load episodes manifest:', err);
+      }
+    }
+
+    function setupPlayer(ep) {
+      document.getElementById('epTitle').textContent = ep.title;
+      document.getElementById('epDate').textContent = ep.pub_date ? ep.pub_date.split(' ').slice(0, 4).join(' ') : 'LATEST EPISODE';
+      document.getElementById('epDuration').textContent = ep.duration_formatted || '10:00';
+      audio.src = ep.audio_url || 'episodes/ep_20260815_daily_tech_ai_dialogue.mp3';
+
+      renderChapters(ep.chapters || []);
+      renderVocab(ep.vocabulary || []);
+    }
+
+    function renderChapters(chapters) {
+      const list = document.getElementById('chapterList');
+      list.innerHTML = '';
+      if (!chapters || chapters.length === 0) {
+        list.innerHTML = '<p style="color: var(--text-dim); font-size: 14px;">No chapter markers available for this episode.</p>';
+        return;
+      }
+
+      chapters.forEach((ch, idx) => {
+        const item = document.createElement('div');
+        item.className = `chapter-item ${idx === 0 ? 'active' : ''}`;
+        item.dataset.sec = ch.seconds || 0;
+        item.innerHTML = `
+          <span class="chapter-time">${ch.timestamp}</span>
+          <span class="chapter-title">${ch.title}</span>
+          <span style="color: var(--accent-cyan); font-size: 12px;">▶</span>
+        `;
+        item.onclick = () => {
+          audio.currentTime = ch.seconds;
+          if (audio.paused) audio.play();
+          highlightChapter(ch.seconds);
+        };
+        list.appendChild(item);
+      });
+    }
+
+    function renderVocab(vocab) {
+      const list = document.getElementById('vocabList');
+      list.innerHTML = '';
+      if (!vocab || vocab.length === 0) {
+        list.innerHTML = '<p style="color: var(--text-dim); font-size: 14px;">No vocabulary terms extracted.</p>';
+        return;
+      }
+
+      vocab.forEach(v => {
+        const card = document.createElement('div');
+        card.className = 'vocab-card';
+        card.innerHTML = `
+          <div class="vocab-header">
+            <span class="vocab-word">${v.term}</span>
+            <span class="vocab-type">${v.type || ''}</span>
+          </div>
+          <p class="vocab-def">${v.definition}</p>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function highlightChapter(sec) {
+      const items = document.querySelectorAll('.chapter-item');
+      items.forEach(el => {
+        const itemSec = parseInt(el.dataset.sec, 10);
+        if (sec >= itemSec) {
+          items.forEach(i => i.classList.remove('active'));
+          el.classList.add('active');
+        }
+      });
+    }
+
+    // Playback Controls
+    playBtn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play();
+      } else {
+        audio.pause();
+      }
+    });
+
+    audio.addEventListener('play', () => {
+      playBtn.textContent = '⏸';
+      soundwave.classList.add('playing');
+    });
+
+    audio.addEventListener('pause', () => {
+      playBtn.textContent = '▶';
+      soundwave.classList.remove('playing');
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration) {
+        const pct = (audio.currentTime / audio.duration) * 100;
+        progressFill.style.width = `${pct}%`;
+        currentTimeEl.textContent = formatTime(audio.currentTime);
+        totalTimeEl.textContent = formatTime(audio.duration);
+        highlightChapter(audio.currentTime);
+      }
+    });
+
+    audio.addEventListener('loadedmetadata', () => {
+      totalTimeEl.textContent = formatTime(audio.duration);
+    });
+
+    progressBar.addEventListener('click', (e) => {
+      const rect = progressBar.getBoundingClientRect();
+      const pos = (e.clientX - rect.left) / rect.width;
+      audio.currentTime = pos * audio.duration;
+    });
+
+    rewindBtn.addEventListener('click', () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
+    forwardBtn.addEventListener('click', () => { audio.currentTime = Math.min(audio.duration, audio.currentTime + 30); });
+
+    speedBtn.addEventListener('click', () => {
+      speedIdx = (speedIdx + 1) % speeds.length;
+      const speed = speeds[speedIdx];
+      audio.playbackRate = speed;
+      speedBtn.textContent = `${speed.toFixed(speed === 1 || speed === 2 ? 1 : 2)}x`;
+    });
+
+    copyRssBtn.addEventListener('click', () => {
+      const rssUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '') + '/podcast.xml';
+      navigator.clipboard.writeText(rssUrl).then(() => {
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+      });
+    });
+
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return '00:00';
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    loadEpisodes();
+  </script>
+</body>
+</html>

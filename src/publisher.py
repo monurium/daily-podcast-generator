@@ -55,7 +55,9 @@ class Publisher:
             "pub_date": episode_meta["pub_date"],
             "audio_url": public_audio_url,
             "file_size": episode_meta["file_size"],
-            "duration_formatted": episode_meta["duration_formatted"]
+            "duration_formatted": episode_meta["duration_formatted"],
+            "chapters": episode_meta.get("chapters", []),
+            "vocabulary": episode_meta.get("vocabulary", [])
         }
 
         # Deduplicate: Remove existing entry with same guid if re-run

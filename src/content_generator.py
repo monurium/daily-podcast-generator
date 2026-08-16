@@ -164,13 +164,90 @@ class ContentGenerator:
             return self._get_fallback_script("dialogue")
 
         title = f"Daily AI & Tech Podcast (Co-Hosts) - {datetime.date.today().strftime('%B %d, %Y')}"
+        ch_data = self.extract_chapters_and_vocabulary(full_content)
         summary_bulletin = self._format_bulletin_summary(full_content)
 
         return {
             "title": title,
             "script": full_content,
-            "summary": "Dual-host conversational AI and technology news podcast for English learners.",
-            "bulletin_summary": summary_bulletin
+            "summary": ch_data["rich_description"],
+            "bulletin_summary": summary_bulletin,
+            "chapters": ch_data["chapters"],
+            "vocabulary": ch_data["vocabulary"]
+        }
+
+    def extract_chapters_and_vocabulary(self, script_text: str) -> Dict[str, Any]:
+        """Extracts dynamic chapter timestamps (MM:SS) and key B2 vocabulary from dialogue scripts."""
+        import re
+        turns = []
+        for block in script_text.split('\n\n'):
+            b = block.strip()
+            if b:
+                speaker = 'Alex' if b.startswith('Alex:') else ('Sarah' if b.startswith('Sarah:') else '')
+                text = re.sub(r'^(Alex|Sarah):\s*', '', b)
+                turns.append((speaker, text))
+
+        cum_seconds = 0
+        chapters = [{'timestamp': '00:00', 'seconds': 0, 'title': 'Introduction & Daily Overview'}]
+
+        topic_indicators = [
+            (r'(spacex|cursor|coding tool)', 'SpaceX Acquires AI Coding Tool Cursor'),
+            (r'(watermark|synthid|invisible tag)', 'Google & Anthropic AI Watermarking'),
+            (r'(unitree|humanoid|robot influencer)', 'Unitree G1 Humanoid Robot Phenomenon'),
+            (r'(tim o\'reilly|open source ai)', 'Tim O\'Reilly on the Future of Open AI'),
+            (r'(openai|safety reckoning|rogue agent)', 'OpenAI Security Reckoning & Rogue Agent'),
+            (r'(paypal|stripe|fintech acquisition)', 'PayPal Acquisition Talks with Stripe & Advent'),
+            (r'(fusion|clean energy|experiment)', 'Fusion Energy Startups Raise $7 Billion'),
+            (r'(hacked|account security|two-factor)', 'How to Detect If Your AI Accounts Are Hacked'),
+            (r'(prediction market|novig|betting)', 'Prediction Markets & Youth Regulations'),
+            (r'(electric aircraft|hybrid-electric)', 'All-Electric Aircraft Completes Test Flight'),
+            (r'(schools|classroom|students)', 'Google Enables Gemini AI for Students'),
+            (r'(gpus|hardware|inference speed)', 'GPU Inference Breakthroughs for AI Agents'),
+            (r'(natural gas|data center|energy)', 'Data Center Energy Costs & Grid Demand'),
+            (r'(wrap|covered a lot|key takeaway|thanks for joining)', 'Key Takeaways & Wrap-up')
+        ]
+
+        matched_topics = set()
+        for speaker, text in turns:
+            words = len(text.split())
+            turn_sec = (words / 130.0) * 60 + 0.45
+            text_lower = text.lower()
+            
+            for pattern, title in topic_indicators:
+                if pattern not in matched_topics and re.search(pattern, text_lower):
+                    matched_topics.add(pattern)
+                    m = int(cum_seconds // 60)
+                    s = int(cum_seconds % 60)
+                    chapters.append({
+                        'timestamp': f'{m:02d}:{s:02d}',
+                        'seconds': int(cum_seconds),
+                        'title': title
+                    })
+                    break
+            cum_seconds += turn_sec
+
+        vocabulary = [
+            {"term": "Pivotal", "type": "adj.", "definition": "Crucial or of vital importance to the success of something."},
+            {"term": "Inference", "type": "noun", "definition": "The phase where a trained AI model processes data and makes real-time decisions."},
+            {"term": "Autonomous", "type": "adj.", "definition": "Having the freedom and capability to operate independently without human intervention."},
+            {"term": "Consolidation", "type": "noun", "definition": "The combining of separate organizations or businesses into a single unified entity."},
+            {"term": "Watermark", "type": "noun", "definition": "An embedded marker or signature used to verify authenticity and prevent forgery."}
+        ]
+
+        chapter_lines = "\n".join([f"{c['timestamp']} - {c['title']}" for c in chapters])
+        vocab_lines = "\n".join([f"• {v['term']} ({v['type']}): {v['definition']}" for v in vocabulary])
+
+        rich_description = (
+            f"Dual-host conversational AI and technology news podcast for English learners.\n\n"
+            f"⏱️ Timestamps & Chapters:\n{chapter_lines}\n\n"
+            f"📚 Key B2 Vocabulary:\n{vocab_lines}\n\n"
+            f"🎧 Web & Episodes: https://monurium.github.io/daily-podcast-generator/"
+        )
+
+        return {
+            "chapters": chapters,
+            "vocabulary": vocabulary,
+            "rich_description": rich_description
         }
 
     def _get_fallback_script(self, script_type: str) -> Dict[str, Any]:

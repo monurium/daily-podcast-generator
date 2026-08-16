@@ -1,4 +1,5 @@
 import os
+import shutil
 import json
 import uuid
 import datetime
@@ -79,7 +80,9 @@ def run_daily_podcast_pipeline(test_mode: bool = False):
             "script": dialogue_script_data["script"],
             "pub_date": pub_date,
             "file_size": dialogue_audio_meta["file_size"],
-            "duration_formatted": dialogue_audio_meta["duration_formatted"]
+            "duration_formatted": dialogue_audio_meta["duration_formatted"],
+            "chapters": dialogue_script_data.get("chapters", []),
+            "vocabulary": dialogue_script_data.get("vocabulary", [])
         }
         test_episodes = test_publisher.add_episode(test_episode_meta, test_audio_path, base_url)
 
@@ -114,7 +117,9 @@ def run_daily_podcast_pipeline(test_mode: bool = False):
             "bulletin_summary": dialogue_script_data.get("bulletin_summary", dialogue_script_data["summary"]),
             "pub_date": pub_date,
             "file_size": dialogue_audio_meta["file_size"],
-            "duration_formatted": dialogue_audio_meta["duration_formatted"]
+            "duration_formatted": dialogue_audio_meta["duration_formatted"],
+            "chapters": dialogue_script_data.get("chapters", []),
+            "vocabulary": dialogue_script_data.get("vocabulary", [])
         }, temp_dialogue_path, base_url)
     except Exception as dialogue_err:
         print(f"⚠️ Primary Dialogue Podcast synthesis failed ({dialogue_err}). Falling back to Monologue Backup...")
@@ -129,12 +134,14 @@ def run_daily_podcast_pipeline(test_mode: bool = False):
             "bulletin_summary": script_data.get("bulletin_summary", script_data["summary"]),
             "pub_date": pub_date,
             "file_size": mono_audio_meta["file_size"],
-            "duration_formatted": mono_audio_meta["duration_formatted"]
+            "duration_formatted": mono_audio_meta["duration_formatted"],
+            "chapters": script_data.get("chapters", []),
+            "vocabulary": script_data.get("vocabulary", [])
         }, temp_mono_path, base_url)
 
 
     # 4. RSS XML Feed Generation for Spotify & Apple Podcasts
-    print("\n[Step 3/3] Updating Spotify & Apple Podcasts RSS feeds...")
+    print("\n[Step 3/3] Updating Spotify & Apple Podcasts RSS feeds & Web Landing Page...")
     rss_builder = RSSBuilder(config=config)
     rss_dist_path = os.path.join(output_dir, config.get("feed_filename", "podcast.xml"))
     rss_root_path = config.get("feed_filename", "podcast.xml")
@@ -142,10 +149,17 @@ def run_daily_podcast_pipeline(test_mode: bool = False):
     rss_builder.build_feed(all_episodes, rss_dist_path)
     rss_builder.build_feed(all_episodes, rss_root_path)
 
+    # Copy web landing page and cover artwork to dist
+    if os.path.exists("index.html"):
+        shutil.copy2("index.html", os.path.join(output_dir, "index.html"))
+    if os.path.exists("cover.jpg"):
+        shutil.copy2("cover.jpg", os.path.join(output_dir, "cover.jpg"))
+
     print("\n" + "=" * 60)
     print("🎉 SUCCESS: Podcast episode generated and RSS feeds updated for Spotify!")
     print(f"Feed path: {rss_root_path}")
     print(f"Feed URL: {base_url.rstrip('/')}/{config.get('feed_filename', 'podcast.xml')}")
+    print(f"Web Player URL: {base_url.rstrip('/')}/")
     print("=" * 60)
 
 if __name__ == "__main__":
