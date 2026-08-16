@@ -177,7 +177,7 @@ class ContentGenerator:
     def extract_chapters_and_vocabulary(self, script_text: str) -> Dict[str, Any]:
         """Generates clean, plain English podcast metadata."""
         rich_description = (
-            "Daily 10-minute conversational podcast covering the latest artificial intelligence breakthroughs, "
+            "Daily conversational podcast covering the latest artificial intelligence breakthroughs, "
             "tech startups, and software engineering news in clear, articulate English."
         )
 
