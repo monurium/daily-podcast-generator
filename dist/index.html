@@ -315,6 +315,14 @@
       line-height: 1.3;
     }
 
+    .episode-topics-summary {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin-top: 8px;
+      max-width: 660px;
+    }
+
     .meta-badges {
       display: flex;
       gap: 8px;
@@ -632,7 +640,8 @@
         <div class="player-header">
           <div>
             <div class="episode-meta-tag" id="epDate">LATEST EPISODE</div>
-            <h2 class="episode-title" id="epTitle">Daily AI & Tech Podcast</h2>
+            <h2 class="episode-title" id="epTitle">Daily AI & Tech Podcast - August 16, 2026</h2>
+            <p class="episode-topics-summary" id="epTopics"><strong style="color: var(--accent-cyan);">Today's Topics:</strong> In today's episode, Alex and Sarah explore Anthropic's new AI watermarking technology, SpaceX's major acquisition of AI coding assistant Cursor, essential security tips to audit your AI accounts, breakthroughs with the Unitree G1 humanoid robot, and record-breaking investments in clean fusion energy.</p>
           </div>
           <div class="meta-badges">
             <span class="badge" id="epDuration">00:08:25</span>
@@ -754,9 +763,16 @@
       if (!ep) return;
       currentEpisode = ep;
       
-      document.getElementById('epTitle').textContent = ep.title || 'Daily Podcast';
+      document.getElementById('epTitle').textContent = ep.title || 'Daily AI & Tech Podcast';
       document.getElementById('epDate').textContent = ep.pub_date ? ep.pub_date.split(' ').slice(0, 4).join(' ') : 'LATEST EPISODE';
       document.getElementById('epDuration').textContent = ep.duration_formatted || '08:00';
+      
+      const topicsText = ep.todays_topics || ep.summary || '';
+      const cleanTopics = topicsText.replace(/^Today's Topics:\s*/i, '');
+      const epTopicsEl = document.getElementById('epTopics');
+      if (epTopicsEl) {
+        epTopicsEl.innerHTML = `<strong style="color: var(--accent-cyan);">Today's Topics:</strong> ${cleanTopics}`;
+      }
       
       playBtn.textContent = '▶';
       totalTimeEl.textContent = ep.duration_formatted || '08:00';

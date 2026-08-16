@@ -163,7 +163,7 @@ class ContentGenerator:
             print(f"⚠️ DeepSeek API call failed ({e}). Using sample fallback dialogue script.")
             return self._get_fallback_script("dialogue")
 
-        title = f"Daily AI & Tech Podcast (Co-Hosts) - {datetime.date.today().strftime('%B %d, %Y')}"
+        title = f"Daily AI & Tech Podcast - {datetime.date.today().strftime('%B %d, %Y')}"
         ch_data = self.extract_chapters_and_vocabulary(full_content)
         summary_bulletin = self._format_bulletin_summary(full_content)
 
@@ -171,9 +171,7 @@ class ContentGenerator:
             "title": title,
             "script": full_content,
             "summary": ch_data["rich_description"],
-            "bulletin_summary": summary_bulletin,
-            "chapters": ch_data["chapters"],
-            "vocabulary": ch_data["vocabulary"]
+            "bulletin_summary": summary_bulletin
         }
 
     def extract_chapters_and_vocabulary(self, script_text: str) -> Dict[str, Any]:
