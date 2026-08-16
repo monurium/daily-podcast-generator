@@ -129,18 +129,19 @@ class ContentGenerator:
             return self._get_fallback_script("dialogue")
 
         system_prompt = (
-            "You are a top-tier podcast producer and English language educator. "
-            "Your task is to write a dynamic, engaging 2-host daily Artificial Intelligence and Technology news podcast conversation script for intermediate (B2) learners.\n\n"
+            "You are a top-tier podcast producer and English language educator creating 'Fluent AI Daily'. "
+            "Your task is to write a dynamic, engaging 2-host daily Artificial Intelligence and Technology news podcast conversation script that immerses English learners in natural, fluent, high-level English.\n\n"
             "CRITICAL MANDATES:\n"
-            "1. TOPIC FOCUS: Focus EXCLUSIVELY on Artificial Intelligence (AI), Machine Learning, Tech Startups, Software, and Future Tech Innovations.\n"
+            "1. TOPIC FOCUS: Focus EXCLUSIVELY on Artificial Intelligence (AI), Machine Learning, Tech Startups, Software Innovations, Robotics, and Future Tech.\n"
             "2. SPOTIFY SAFETY MANDATE: Strictly produce 100% Spotify-compliant, family-friendly (PG) content. NEVER include news, references, or vocabulary about war, military conflict, suicide, murder, crime, violence, or adult/sexual themes.\n"
-            "3. HOST ROLES: The co-hosts are Alex (Host A - energetic interviewer) and Sarah (Host B - knowledgeable articulate AI expert).\n"
+            "3. HOST ROLES & DYNAMICS: The co-hosts are Alex (Host A - energetic, curious interviewer) and Sarah (Host B - knowledgeable, articulate tech insider).\n"
             "4. FORMAT: Format the conversation strictly line-by-line using speaker labels: 'Alex: ...' and 'Sarah: ...'.\n"
             "5. TARGET LENGTH: WRITE BETWEEN 1200 AND 1400 WORDS TOTAL for an optimal 6.5-7.5 minute spoken audio duration.\n"
-            "6. GREETING & INTRO: Start immediately with a friendly greeting between Alex and Sarah discussing today's tech & AI headlines.\n"
-            "7. NO B2 LEVEL MENTIONS: Never say 'B2 level' or 'for B2 learners' in the script.\n"
-            "8. CONTENT: Discuss 5-6 intriguing AI and tech news stories from the context with lively back-and-forth banter, reactions, and clear explanations of key concepts.\n"
-            "9. NO SPECIAL CHARACTERS: Write clean sentences without markdown formatting like asterisks or brackets."
+            "6. NATURAL VOCABULARY CLARIFICATIONS: Whenever advanced tech concepts or rich vocabulary terms (e.g., 'pivotal', 'latency', 'paradigm shift', 'consolidation', 'autonomous') are introduced, the other co-host naturally reinforces or rephrases the meaning with a smooth synonym without breaking conversational flow (e.g., 'Right, a crucial turning point for developers...').\n"
+            "7. PHRASAL VERBS & IDIOMS: Naturally weave 4-5 high-value conversational tech/business phrasal verbs and idioms throughout the dialogue (e.g., 'roll out', 'double down on', 'iron out', 'scale up', 'bridge the gap').\n"
+            "8. 'PHRASE OF THE DAY' CLOSING SEGMENT: In the final 30-40 seconds of the episode before signing off, Alex asks: 'Before we sign off today, Sarah, what's your top phrase of the day from our discussion?' Sarah highlights 1 memorable idiom/phrase with a quick 1-sentence real-world takeaway, followed by an upbeat friendly sign-off.\n"
+            "9. NO LEVEL LABELS: Never say 'B2 level' or 'for English learners' in the script—keep the immersion 100% authentic and conversational.\n"
+            "10. NO SPECIAL CHARACTERS: Write clean, plain English sentences without markdown formatting like asterisks or brackets."
         )
 
         user_prompt = (
@@ -254,16 +255,16 @@ class ContentGenerator:
                     "Alex: Thanks for tuning in today, stay curious!"
                 )
             return {
-                "title": f"Daily AI & Tech Podcast (Co-Hosts) - {today_formatted}",
+                "title": f"Fluent AI Daily - {today_formatted}",
                 "script": content,
-                "summary": "Dual-host conversational AI and technology news podcast for English learners.",
+                "summary": "Daily conversational podcast covering the latest artificial intelligence breakthroughs, tech startups, and software engineering in clear, articulate English.",
                 "bulletin_summary": "<p>Today's AI and Tech developments.</p>"
             }
         else:
             return {
-                "title": f"Daily Tech & AI Digest - {today_formatted}",
+                "title": f"Fluent AI Daily (Monologue) - {today_formatted}",
                 "script": "Hello listeners! Welcome to today's AI and Tech digest. Today we explore developments in artificial intelligence, robotics, and software innovation.",
-                "summary": "Daily Artificial Intelligence and technology news monologue for B2 English learners.",
+                "summary": "Daily conversational podcast covering the latest artificial intelligence breakthroughs, tech startups, and software engineering in clear, articulate English.",
                 "bulletin_summary": "<p>Daily AI news summary.</p>"
             }
 
