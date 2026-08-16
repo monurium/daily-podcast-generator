@@ -1293,8 +1293,10 @@
       bubbleElements.forEach((el, idx) => {
         if (idx === activeIndex) {
           el.classList.add('active');
-          if (isAutoscrollEnabled) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (isAutoscrollEnabled && sentenceStream) {
+            // Scroll ONLY inside the sentenceStream container without affecting the main page window scroll
+            const targetTop = el.offsetTop - sentenceStream.offsetTop - (sentenceStream.clientHeight / 2) + (el.clientHeight / 2);
+            sentenceStream.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
           }
         } else {
           el.classList.remove('active');
