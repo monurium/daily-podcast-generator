@@ -24,9 +24,12 @@ class Publisher:
         return []
 
     def save_manifest(self, episodes: List[Dict[str, Any]]):
-        """Saves updated episode metadata manifest."""
+        """Saves updated episode metadata manifest to output_dir and root."""
         with open(self.manifest_path, "w", encoding="utf-8") as f:
             json.dump(episodes, f, indent=2, ensure_ascii=False)
+        if self.output_dir != "output":
+            with open("episodes_manifest.json", "w", encoding="utf-8") as f:
+                json.dump(episodes, f, indent=2, ensure_ascii=False)
 
     def add_episode(self, episode_meta: Dict[str, Any], temp_audio_path: str, base_url: str) -> List[Dict[str, Any]]:
         """Copies audio to output folder, computes public URL, deduplicates, and updates episode registry."""

@@ -238,6 +238,39 @@
       transform: translateY(-2px);
     }
 
+    /* Episode Selector Pills */
+    .episode-selector-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+
+    .ep-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .ep-pill:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    .ep-pill.active {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(121, 40, 202, 0.3));
+      border-color: var(--accent-cyan);
+      color: #fff;
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+    }
+
     /* Audio Player Card */
     .player-card {
       background: var(--bg-card);
@@ -253,7 +286,8 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
+      gap: 20px;
     }
 
     .episode-meta-tag {
@@ -276,6 +310,7 @@
     .meta-badges {
       display: flex;
       gap: 8px;
+      flex-shrink: 0;
     }
 
     .badge {
@@ -381,10 +416,11 @@
       background: none;
       border: none;
       color: var(--text-muted);
-      font-size: 18px;
+      font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
-      padding: 8px;
-      border-radius: 50%;
+      padding: 8px 12px;
+      border-radius: 10px;
       transition: all 0.2s;
       display: flex;
       align-items: center;
@@ -439,7 +475,7 @@
     /* Chapters & Learning Grid */
     .grid-2col {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.1fr 0.9fr;
       gap: 32px;
       margin-bottom: 56px;
     }
@@ -466,7 +502,7 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      max-height: 380px;
+      max-height: 420px;
       overflow-y: auto;
       padding-right: 6px;
     }
@@ -489,7 +525,7 @@
     }
     .chapter-item.active {
       border-color: var(--accent-cyan);
-      background: rgba(0, 242, 254, 0.1);
+      background: rgba(0, 242, 254, 0.12);
     }
 
     .chapter-time {
@@ -515,6 +551,9 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 6px;
     }
 
     .vocab-card {
@@ -651,21 +690,26 @@
         </div>
       </section>
 
+      <!-- Episode Selector -->
+      <div class="episode-selector-container" id="episodeSelector">
+        <!-- Episode pills dynamically added -->
+      </div>
+
       <!-- Web Audio Player -->
       <section class="player-card">
         <div class="player-header">
           <div>
-            <div class="episode-meta-tag" id="epDate">LATEST EPISODE</div>
-            <h2 class="episode-title" id="epTitle">Loading latest episode...</h2>
+            <div class="episode-meta-tag" id="epDate">AUGUST 16, 2026</div>
+            <h2 class="episode-title" id="epTitle">Daily AI & Tech Podcast</h2>
           </div>
           <div class="meta-badges">
-            <span class="badge" id="epDuration">00:10:42</span>
-            <span class="badge" style="color: #4ade80;">2-Host Co-Hosts</span>
+            <span class="badge" id="epDuration">00:10:43</span>
+            <span class="badge" style="color: #4ade80;">2-Host Dialogue</span>
           </div>
         </div>
 
         <div class="soundwave" id="soundwaveContainer">
-          <!-- 32 sound bars dynamically generated -->
+          <!-- 36 sound bars dynamically generated -->
         </div>
 
         <audio id="audioElement" preload="metadata"></audio>
@@ -678,7 +722,7 @@
           </div>
           <div class="time-indicators">
             <span id="currentTime">00:00</span>
-            <span id="totalTime">00:00</span>
+            <span id="totalTime">10:43</span>
           </div>
         </div>
 
@@ -723,6 +767,62 @@
   <div class="toast" id="toast">📋 RSS Feed URL copied to clipboard!</div>
 
   <script>
+    // Embedded initial manifest for instant 0-second offline/fallback rendering
+    const EMBEDDED_MANIFEST = [
+      {
+        "guid": "ep_20260816_podcast_e865d2",
+        "title": "Daily AI & Tech Podcast (Co-Hosts) - August 16, 2026",
+        "pub_date": "Sun, 16 Aug 2026 06:20:36 GMT",
+        "audio_url": "https://monurium.github.io/daily-podcast-generator/episodes/ep_20260816_podcast_e865d2.mp3",
+        "file_size": 3949272,
+        "duration_formatted": "00:10:43",
+        "chapters": [
+          { "timestamp": "00:00", "seconds": 0, "title": "Introduction & Daily Overview" },
+          { "timestamp": "00:28", "seconds": 28, "title": "Google & Anthropic AI Watermarking" },
+          { "timestamp": "03:05", "seconds": 185, "title": "SpaceX Acquires AI Coding Tool Cursor" },
+          { "timestamp": "05:32", "seconds": 332, "title": "How to Detect If Your AI Accounts Are Hacked" },
+          { "timestamp": "06:48", "seconds": 408, "title": "Unitree G1 Humanoid Robot Phenomenon" },
+          { "timestamp": "07:36", "seconds": 456, "title": "Fusion Energy Startups Raise $7 Billion" },
+          { "timestamp": "09:04", "seconds": 544, "title": "OpenAI Security Reckoning & Rogue Agent" }
+        ],
+        "vocabulary": [
+          { "term": "Pivotal", "type": "adj.", "definition": "Crucial or of vital importance to the success of something." },
+          { "term": "Inference", "type": "noun", "definition": "The phase where a trained AI model processes data and makes real-time decisions." },
+          { "term": "Autonomous", "type": "adj.", "definition": "Having the freedom and capability to operate independently without human intervention." },
+          { "term": "Consolidation", "type": "noun", "definition": "The combining of separate organizations or businesses into a single unified entity." },
+          { "term": "Watermark", "type": "noun", "definition": "An embedded marker or signature used to verify authenticity and prevent forgery." }
+        ]
+      },
+      {
+        "guid": "ep_20260815_daily_tech_ai_dialogue",
+        "title": "Daily AI & Tech Podcast: SpaceX Buys Cursor, AI Watermarks & Humanoid Robots - August 15, 2026",
+        "pub_date": "Sat, 15 Aug 2026 21:02:40 GMT",
+        "audio_url": "https://monurium.github.io/daily-podcast-generator/episodes/ep_20260815_daily_tech_ai_dialogue.mp3",
+        "file_size": 3812868,
+        "duration_formatted": "00:10:42",
+        "chapters": [
+          { "timestamp": "00:00", "seconds": 0, "title": "Introduction & Daily Overview" },
+          { "timestamp": "00:15", "seconds": 15, "title": "Unitree G1 Humanoid Robot Phenomenon" },
+          { "timestamp": "00:36", "seconds": 36, "title": "SpaceX Acquires AI Coding Tool Cursor" },
+          { "timestamp": "01:21", "seconds": 81, "title": "Google & Anthropic AI Watermarking" },
+          { "timestamp": "05:57", "seconds": 357, "title": "OpenAI Security Reckoning & Rogue Agent" },
+          { "timestamp": "07:08", "seconds": 428, "title": "PayPal Acquisition Talks with Stripe & Advent" },
+          { "timestamp": "07:50", "seconds": 470, "title": "Fusion Energy Startups Raise $7 Billion" },
+          { "timestamp": "08:08", "seconds": 488, "title": "Data Center Energy Costs & Grid Demand" },
+          { "timestamp": "08:32", "seconds": 512, "title": "How to Detect If Your AI Accounts Are Hacked" },
+          { "timestamp": "09:14", "seconds": 554, "title": "Prediction Markets & Youth Regulations" },
+          { "timestamp": "09:58", "seconds": 598, "title": "Key Takeaways & Wrap-up" }
+        ],
+        "vocabulary": [
+          { "term": "Pivotal", "type": "adj.", "definition": "Crucial or of vital importance to the success of something." },
+          { "term": "Inference", "type": "noun", "definition": "The phase where a trained AI model processes data and makes real-time decisions." },
+          { "term": "Autonomous", "type": "adj.", "definition": "Having the freedom and capability to operate independently without human intervention." },
+          { "term": "Consolidation", "type": "noun", "definition": "The combining of separate organizations or businesses into a single unified entity." },
+          { "term": "Watermark", "type": "noun", "definition": "An embedded marker or signature used to verify authenticity and prevent forgery." }
+        ]
+      }
+    ];
+
     // Soundwave visualizer bars
     const soundwave = document.getElementById('soundwaveContainer');
     for (let i = 0; i < 36; i++) {
@@ -743,30 +843,71 @@
     const forwardBtn = document.getElementById('forwardBtn');
     const copyRssBtn = document.getElementById('copyRssBtn');
     const toast = document.getElementById('toast');
+    const episodeSelector = document.getElementById('episodeSelector');
 
-    let currentEpisode = null;
+    let allEpisodes = EMBEDDED_MANIFEST;
+    let currentEpisode = allEpisodes[0];
     const speeds = [1.0, 1.25, 1.5, 2.0];
     let speedIdx = 0;
 
-    // Load Manifest
+    // Load Manifest from server or use embedded
     async function loadEpisodes() {
       try {
-        const res = await fetch('episodes_manifest.json');
-        const episodes = await res.json();
-        if (episodes && episodes.length > 0) {
-          currentEpisode = episodes[0];
-          setupPlayer(currentEpisode);
+        let res = await fetch('episodes_manifest.json');
+        if (!res.ok) {
+          res = await fetch('dist/episodes_manifest.json');
+        }
+        if (res.ok) {
+          const episodes = await res.json();
+          if (episodes && episodes.length > 0) {
+            allEpisodes = episodes;
+          }
         }
       } catch (err) {
-        console.error('Failed to load episodes manifest:', err);
+        console.log('Using embedded episodes data:', err);
       }
+
+      renderEpisodePills(allEpisodes);
+      setupPlayer(allEpisodes[0]);
+    }
+
+    function renderEpisodePills(episodes) {
+      episodeSelector.innerHTML = '';
+      episodes.forEach((ep, idx) => {
+        const pill = document.createElement('button');
+        pill.className = `ep-pill ${idx === 0 ? 'active' : ''}`;
+        const dateStr = ep.pub_date ? ep.pub_date.split(' ').slice(1, 4).join(' ') : `Episode ${idx + 1}`;
+        pill.textContent = `📅 ${dateStr}`;
+        pill.onclick = () => {
+          document.querySelectorAll('.ep-pill').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          setupPlayer(ep);
+        };
+        episodeSelector.appendChild(pill);
+      });
     }
 
     function setupPlayer(ep) {
+      currentEpisode = ep;
       document.getElementById('epTitle').textContent = ep.title;
       document.getElementById('epDate').textContent = ep.pub_date ? ep.pub_date.split(' ').slice(0, 4).join(' ') : 'LATEST EPISODE';
       document.getElementById('epDuration').textContent = ep.duration_formatted || '10:00';
-      audio.src = ep.audio_url || 'episodes/ep_20260815_daily_tech_ai_dialogue.mp3';
+      
+      // Determine working relative path vs absolute audio URL
+      const relativeAudioSrc = `episodes/${ep.guid}.mp3`;
+      audio.src = relativeAudioSrc;
+      
+      // Automatic fallback if relative path has issues
+      audio.onerror = () => {
+        if (ep.audio_url && audio.src !== ep.audio_url) {
+          console.log('Falling back to absolute audio URL:', ep.audio_url);
+          audio.src = ep.audio_url;
+        }
+      };
+
+      totalTimeEl.textContent = ep.duration_formatted || '10:00';
+      progressFill.style.width = '0%';
+      currentTimeEl.textContent = '00:00';
 
       renderChapters(ep.chapters || []);
       renderVocab(ep.vocabulary || []);
@@ -791,7 +932,9 @@
         `;
         item.onclick = () => {
           audio.currentTime = ch.seconds;
-          if (audio.paused) audio.play();
+          if (audio.paused) {
+            audio.play().catch(e => console.log('Autoplay policy', e));
+          }
           highlightChapter(ch.seconds);
         };
         list.appendChild(item);
@@ -834,7 +977,14 @@
     // Playback Controls
     playBtn.addEventListener('click', () => {
       if (audio.paused) {
-        audio.play();
+        audio.play().catch(err => {
+          console.error('Playback error:', err);
+          // Try fallback url
+          if (currentEpisode && currentEpisode.audio_url && audio.src !== currentEpisode.audio_url) {
+            audio.src = currentEpisode.audio_url;
+            audio.play();
+          }
+        });
       } else {
         audio.pause();
       }
