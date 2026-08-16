@@ -119,7 +119,8 @@ def run_daily_podcast_pipeline(test_mode: bool = False):
             "file_size": dialogue_audio_meta["file_size"],
             "duration_formatted": dialogue_audio_meta["duration_formatted"],
             "chapters": dialogue_script_data.get("chapters", []),
-            "vocabulary": dialogue_script_data.get("vocabulary", [])
+            "vocabulary": dialogue_script_data.get("vocabulary", []),
+            "sentences": dialogue_script_data.get("sentences", [])
         }, temp_dialogue_path, base_url)
     except Exception as dialogue_err:
         print(f"⚠️ Primary Dialogue Podcast synthesis failed ({dialogue_err}). Falling back to Monologue Backup...")
@@ -136,7 +137,8 @@ def run_daily_podcast_pipeline(test_mode: bool = False):
             "file_size": mono_audio_meta["file_size"],
             "duration_formatted": mono_audio_meta["duration_formatted"],
             "chapters": script_data.get("chapters", []),
-            "vocabulary": script_data.get("vocabulary", [])
+            "vocabulary": script_data.get("vocabulary", []),
+            "sentences": script_data.get("sentences", [])
         }, temp_mono_path, base_url)
 
 

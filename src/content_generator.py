@@ -244,11 +244,64 @@ class ContentGenerator:
             f"🎧 Web & Episodes: https://monurium.github.io/daily-podcast-generator/"
         )
 
+        sentences = self.extract_timed_sentences(script_text)
+
         return {
             "chapters": chapters,
             "vocabulary": vocabulary,
+            "sentences": sentences,
             "rich_description": rich_description
         }
+
+    def extract_timed_sentences(self, script_text: str, total_duration_seconds: float = 643.0) -> List[Dict[str, Any]]:
+        """Extracts turn-aware, character-weighted, and pause-calibrated sentence timestamps."""
+        import re
+        raw_blocks = [b.strip() for b in script_text.split('\n\n') if b.strip()]
+        turns_data = []
+        total_raw_weight = 0.0
+
+        for b in raw_blocks:
+            speaker = 'Alex' if b.startswith('Alex:') else ('Sarah' if b.startswith('Sarah:') else 'Alex')
+            clean_turn_text = re.sub(r'^(Alex|Sarah):\s*', '', b).strip()
+            s_list = [s.strip() for s in re.split(r'(?<=[.!?])\s+', clean_turn_text) if len(s.strip()) > 1]
+            if not s_list and clean_turn_text:
+                s_list = [clean_turn_text]
+
+            turn_sentences = []
+            turn_weight = 0.0
+            for s in s_list:
+                char_count = len(s)
+                weight = (char_count / 14.5) + 0.35
+                turn_sentences.append({'speaker': speaker, 'text': s, 'weight': weight})
+                turn_weight += weight
+
+            turn_weight += 0.6
+            turns_data.append({'speaker': speaker, 'sentences': turn_sentences, 'turn_weight': turn_weight})
+            total_raw_weight += turn_weight
+
+        scale_factor = total_duration_seconds / total_raw_weight if total_raw_weight > 0 else 1.0
+        cum_time = 0.0
+        timed_sentences = []
+
+        for t in turns_data:
+            for s in t['sentences']:
+                dur = s['weight'] * scale_factor
+                st = cum_time
+                en = cum_time + dur
+                m = int(st // 60)
+                sec = int(st % 60)
+                timed_sentences.append({
+                    'speaker': s['speaker'],
+                    'text': s['text'],
+                    'start_sec': round(st, 1),
+                    'end_sec': round(en, 1),
+                    'duration': round(dur, 1),
+                    'time_formatted': f'{m:02d}:{sec:02d}'
+                })
+                cum_time += dur
+            cum_time += 0.6 * scale_factor
+
+        return timed_sentences
 
     def _get_fallback_script(self, script_type: str) -> Dict[str, Any]:
         today_formatted = datetime.date.today().strftime('%B %d, %Y')

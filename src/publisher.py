@@ -60,7 +60,8 @@ class Publisher:
             "file_size": episode_meta["file_size"],
             "duration_formatted": episode_meta["duration_formatted"],
             "chapters": episode_meta.get("chapters", []),
-            "vocabulary": episode_meta.get("vocabulary", [])
+            "vocabulary": episode_meta.get("vocabulary", []),
+            "sentences": episode_meta.get("sentences", [])
         }
 
         # Deduplicate: Remove existing entry with same guid if re-run
