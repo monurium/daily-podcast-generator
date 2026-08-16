@@ -4,25 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Pulse Daily - Interactive AI & Tech Podcast</title>
-  <meta name="description" content="Daily 10-minute conversational podcast covering AI breakthroughs, tech startups, and software news in articulate B2 English." />
+  <meta name="description" content="Daily 10-minute conversational podcast covering AI breakthroughs, tech startups, and software engineering with live flowing transcripts in B2 English." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg-dark: #07090e;
-      --bg-card: rgba(18, 22, 34, 0.8);
-      --bg-card-hover: rgba(28, 34, 52, 0.9);
-      --border-glow: rgba(112, 0, 255, 0.25);
+      --bg-card: rgba(15, 20, 32, 0.78);
+      --bg-card-hover: rgba(25, 33, 50, 0.88);
+      --border-glow: rgba(112, 0, 255, 0.28);
       --border-subtle: rgba(255, 255, 255, 0.08);
       --accent-cyan: #00f2fe;
       --accent-violet: #7928ca;
       --accent-magenta: #ff0080;
       --alex-color: #38bdf8;
       --sarah-color: #c084fc;
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
-      --text-dim: #6b7280;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
     }
 
     * {
@@ -45,9 +45,9 @@
       position: fixed;
       top: -150px;
       left: -150px;
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, rgba(121, 40, 202, 0.25) 0%, rgba(0,0,0,0) 70%);
+      width: 650px;
+      height: 650px;
+      background: radial-gradient(circle, rgba(121, 40, 202, 0.28) 0%, rgba(0,0,0,0) 70%);
       border-radius: 50%;
       filter: blur(80px);
       z-index: 0;
@@ -56,11 +56,11 @@
 
     .ambient-glow-2 {
       position: fixed;
-      top: 40%;
+      top: 35%;
       right: -200px;
-      width: 700px;
-      height: 700px;
-      background: radial-gradient(circle, rgba(0, 242, 254, 0.18) 0%, rgba(0,0,0,0) 70%);
+      width: 750px;
+      height: 750px;
+      background: radial-gradient(circle, rgba(0, 242, 254, 0.2) 0%, rgba(0,0,0,0) 70%);
       border-radius: 50%;
       filter: blur(90px);
       z-index: 0;
@@ -77,7 +77,7 @@
 
     /* Navbar */
     header {
-      padding: 28px 0;
+      padding: 24px 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -93,32 +93,38 @@
     }
 
     .brand-icon {
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
-      border-radius: 10px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
-      box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+      font-size: 20px;
+      box-shadow: 0 4px 20px rgba(0, 242, 254, 0.35);
     }
 
     .brand-title {
       font-family: 'Outfit', sans-serif;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 700;
       letter-spacing: -0.5px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
 
     .live-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      background: rgba(34, 197, 94, 0.15);
+      gap: 8px;
+      background: rgba(34, 197, 94, 0.12);
       border: 1px solid rgba(34, 197, 94, 0.3);
       color: #4ade80;
-      padding: 5px 12px;
+      padding: 6px 14px;
       border-radius: 20px;
       font-size: 12px;
       font-weight: 600;
@@ -127,11 +133,11 @@
     }
 
     .pulse-dot {
-      width: 7px;
-      height: 7px;
+      width: 8px;
+      height: 8px;
       background: #4ade80;
       border-radius: 50%;
-      box-shadow: 0 0 8px #4ade80;
+      box-shadow: 0 0 10px #4ade80;
       animation: pulse 1.8s infinite;
     }
 
@@ -140,11 +146,30 @@
       50% { opacity: 0.4; transform: scale(0.85); }
     }
 
+    .kb-shortcuts-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: help;
+      transition: all 0.2s;
+    }
+    .kb-shortcuts-badge:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
     /* Hero Section */
     .hero {
       padding: 44px 0 24px;
       display: grid;
-      grid-template-columns: 280px 1fr;
+      grid-template-columns: 290px 1fr;
       gap: 44px;
       align-items: center;
     }
@@ -155,17 +180,22 @@
 
     .cover-img {
       width: 100%;
-      border-radius: 20px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(121, 40, 202, 0.3);
+      border-radius: 22px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 35px rgba(121, 40, 202, 0.3);
       border: 1px solid rgba(255, 255, 255, 0.15);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       aspect-ratio: 1 / 1;
       object-fit: cover;
     }
 
+    .cover-wrapper:hover .cover-img {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 45px rgba(0, 242, 254, 0.4);
+    }
+
     .hero-content h1 {
       font-family: 'Outfit', sans-serif;
-      font-size: 38px;
+      font-size: 40px;
       font-weight: 800;
       line-height: 1.15;
       margin-bottom: 12px;
@@ -178,8 +208,8 @@
     .hero-content p {
       font-size: 16px;
       color: var(--text-muted);
-      margin-bottom: 22px;
-      max-width: 600px;
+      margin-bottom: 24px;
+      max-width: 620px;
     }
 
     /* Action Buttons */
@@ -193,7 +223,7 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 18px;
+      padding: 10px 20px;
       border-radius: 12px;
       font-size: 14px;
       font-weight: 600;
@@ -211,16 +241,17 @@
     .btn-spotify:hover {
       background: #1ed760;
       transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(29, 185, 84, 0.4);
     }
 
     .btn-apple {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(12px);
       color: #fff;
       border-color: rgba(255, 255, 255, 0.15);
     }
     .btn-apple:hover {
-      background: rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.16);
       transform: translateY(-2px);
     }
 
@@ -248,7 +279,7 @@
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border-subtle);
       color: var(--text-muted);
-      padding: 8px 16px;
+      padding: 8px 18px;
       border-radius: 20px;
       font-size: 13px;
       font-weight: 600;
@@ -264,7 +295,7 @@
       background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(121, 40, 202, 0.3));
       border-color: var(--accent-cyan);
       color: #fff;
-      box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+      box-shadow: 0 0 18px rgba(0, 242, 254, 0.25);
     }
 
     /* Audio Player Card */
@@ -286,13 +317,20 @@
       gap: 20px;
     }
 
-    .episode-meta-tag {
-      font-size: 12px;
+    .current-topic-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
       color: var(--accent-cyan);
-      margin-bottom: 6px;
+      background: rgba(0, 242, 254, 0.1);
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(0, 242, 254, 0.2);
     }
 
     .episode-title {
@@ -319,6 +357,35 @@
       font-weight: 500;
     }
 
+    /* Soundwave Visualizer */
+    .soundwave-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 24px;
+      margin-bottom: 16px;
+    }
+
+    .wave-bar {
+      flex: 1;
+      height: 4px;
+      background: linear-gradient(180deg, var(--accent-cyan), var(--accent-violet));
+      border-radius: 3px;
+      opacity: 0.4;
+      transition: height 0.2s ease, opacity 0.2s;
+    }
+
+    .playing .wave-bar {
+      animation: waveLiveAnim 1.1s ease-in-out infinite alternate;
+      opacity: 0.9;
+    }
+
+    @keyframes waveLiveAnim {
+      0% { height: 4px; }
+      50% { height: 22px; }
+      100% { height: 8px; }
+    }
+
     /* Progress & Controls */
     .progress-container {
       margin-bottom: 16px;
@@ -339,6 +406,7 @@
       background: linear-gradient(90deg, var(--accent-cyan), var(--accent-violet));
       border-radius: 4px;
       position: relative;
+      transition: width 0.1s linear;
     }
 
     .progress-handle {
@@ -349,13 +417,14 @@
       height: 16px;
       background: #fff;
       border-radius: 50%;
-      box-shadow: 0 0 10px rgba(0, 242, 254, 0.8);
+      box-shadow: 0 0 12px rgba(0, 242, 254, 0.9);
       opacity: 0;
-      transition: opacity 0.2s;
+      transition: opacity 0.2s, transform 0.2s;
     }
 
     .progress-bar-wrapper:hover .progress-handle {
       opacity: 1;
+      transform: scale(1.15);
     }
 
     .time-indicators {
@@ -363,6 +432,7 @@
       justify-content: space-between;
       font-size: 13px;
       color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
       font-weight: 500;
       margin-top: 8px;
     }
@@ -397,32 +467,74 @@
     .ctrl-btn:hover {
       color: #fff;
       background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-1px);
     }
 
     .play-btn {
-      width: 54px;
-      height: 54px;
+      width: 56px;
+      height: 56px;
       background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
       color: #fff;
       border-radius: 50%;
-      font-size: 20px;
+      font-size: 22px;
       box-shadow: 0 8px 25px rgba(0, 242, 254, 0.4);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       border: none;
     }
     .play-btn:hover {
-      transform: scale(1.08);
-      box-shadow: 0 10px 30px rgba(0, 242, 254, 0.6);
+      transform: scale(1.1);
+      box-shadow: 0 10px 30px rgba(0, 242, 254, 0.65);
     }
 
     .secondary-controls {
       display: flex;
       align-items: center;
       gap: 12px;
+    }
+
+    /* Volume Control */
+    .volume-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      padding: 4px 10px;
+      border-radius: 10px;
+    }
+
+    .volume-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .volume-btn:hover {
+      color: #fff;
+    }
+
+    .volume-slider {
+      width: 60px;
+      height: 4px;
+      -webkit-appearance: none;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      cursor: pointer;
+      outline: none;
+    }
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 8px var(--accent-cyan);
+      cursor: pointer;
     }
 
     .speed-btn {
@@ -437,7 +549,8 @@
       transition: all 0.2s;
     }
     .speed-btn:hover {
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.16);
+      transform: translateY(-1px);
     }
 
     .autoscroll-toggle {
@@ -462,7 +575,7 @@
 
     /* Live Flowing Sentences Teleprompter */
     .teleprompter-card {
-      background: rgba(10, 14, 24, 0.9);
+      background: rgba(10, 14, 24, 0.92);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 18px;
       padding: 24px;
@@ -475,7 +588,9 @@
       align-items: center;
       margin-bottom: 16px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      padding-bottom: 10px;
+      padding-bottom: 12px;
+      gap: 16px;
+      flex-wrap: wrap;
     }
 
     .teleprompter-title {
@@ -486,6 +601,28 @@
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+
+    .transcript-search-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      padding: 4px 10px;
+      border-radius: 8px;
+    }
+
+    .transcript-search-input {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 12px;
+      outline: none;
+      width: 130px;
+    }
+    .transcript-search-input::placeholder {
+      color: var(--text-dim);
     }
 
     .sentence-stream-viewport {
@@ -579,7 +716,7 @@
     .sentence-timestamp {
       font-size: 11px;
       color: var(--text-dim);
-      font-family: monospace;
+      font-family: 'JetBrains Mono', monospace;
       margin-top: 4px;
     }
 
@@ -640,7 +777,7 @@
     }
 
     .chapter-time {
-      font-family: monospace;
+      font-family: 'JetBrains Mono', monospace;
       font-size: 13px;
       font-weight: 700;
       color: var(--accent-cyan);
@@ -677,6 +814,7 @@
     .vocab-card:hover {
       background: var(--bg-card-hover);
       border-color: rgba(121, 40, 202, 0.4);
+      transform: translateY(-2px);
     }
 
     .vocab-header {
@@ -703,6 +841,52 @@
       font-size: 13px;
       color: var(--text-muted);
       line-height: 1.4;
+    }
+
+    /* Keyboard Modal */
+    .kb-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .kb-modal.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .kb-modal-content {
+      background: #0f1420;
+      border: 1px solid var(--border-glow);
+      border-radius: 20px;
+      padding: 28px;
+      max-width: 440px;
+      width: 90%;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+
+    .kb-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 13px;
+    }
+
+    .kb-key {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent-cyan);
     }
 
     /* Toast Notification */
@@ -756,6 +940,10 @@
       .grid-2col {
         grid-template-columns: 1fr;
       }
+      .controls-row {
+        flex-direction: column;
+        gap: 16px;
+      }
     }
   </style>
 </head>
@@ -769,9 +957,14 @@
         <div class="brand-icon">🎙️</div>
         <span class="brand-title">AI Pulse Daily</span>
       </a>
-      <div class="live-badge">
-        <span class="pulse-dot"></span>
-        Spotify & Apple Podcasts
+      <div class="header-actions">
+        <div class="kb-shortcuts-badge" id="kbModalBtn" title="View keyboard shortcuts">
+          <span>⌨️ Shortcuts</span>
+        </div>
+        <div class="live-badge">
+          <span class="pulse-dot"></span>
+          Spotify & Apple Podcasts
+        </div>
       </div>
     </header>
 
@@ -810,13 +1003,17 @@
       <section class="player-card">
         <div class="player-header">
           <div>
-            <div class="episode-meta-tag" id="epDate">LOADING EPISODE...</div>
+            <div class="current-topic-pill" id="currentTopicPill">🎙️ Introduction & Daily Overview</div>
             <h2 class="episode-title" id="epTitle">Daily AI & Tech Podcast</h2>
           </div>
           <div class="meta-badges">
             <span class="badge" id="epDuration">00:10:43</span>
             <span class="badge" style="color: #4ade80;">2-Host Dialogue</span>
           </div>
+        </div>
+
+        <div class="soundwave-bar-row" id="soundwaveBarRow">
+          <!-- 32 mini equalizers -->
         </div>
 
         <audio id="audioElement" preload="metadata"></audio>
@@ -835,13 +1032,17 @@
 
         <div class="controls-row">
           <div class="main-controls">
-            <button class="ctrl-btn" id="rewindBtn" title="Rewind 15s">↺ 15s</button>
-            <button class="play-btn" id="playBtn" title="Play / Pause">▶</button>
-            <button class="ctrl-btn" id="forwardBtn" title="Forward 30s">30s ↻</button>
+            <button class="ctrl-btn" id="rewindBtn" title="Rewind 15s (←)">↺ 15s</button>
+            <button class="play-btn" id="playBtn" title="Play / Pause (Space)">▶</button>
+            <button class="ctrl-btn" id="forwardBtn" title="Forward 30s (→)">30s ↻</button>
           </div>
 
           <div class="secondary-controls">
-            <button class="speed-btn" id="speedBtn">1.0x</button>
+            <div class="volume-container">
+              <button class="volume-btn" id="muteBtn" title="Mute / Unmute (M)">🔊</button>
+              <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.05" value="1" title="Volume (↑/↓)" />
+            </div>
+            <button class="speed-btn" id="speedBtn" title="Speed (S)">1.0x</button>
             <div class="autoscroll-toggle active" id="autoscrollToggle" title="Auto-scroll sentences with speech">
               <span>📌 Auto-Scroll: ON</span>
             </div>
@@ -852,9 +1053,15 @@
         <div class="teleprompter-card">
           <div class="teleprompter-header">
             <span class="teleprompter-title">
-              <span>💬</span> Live Flowing Sentences (Click any sentence to listen)
+              <span>💬</span> Live Spoken Sentences
             </span>
-            <span style="font-size: 11px; color: var(--text-dim);" id="sentenceCountBadge">0 Sentences</span>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div class="transcript-search-wrapper">
+                <span style="font-size: 11px; opacity: 0.6;">🔍</span>
+                <input type="text" class="transcript-search-input" id="searchInput" placeholder="Search transcript..." />
+              </div>
+              <span style="font-size: 11px; color: var(--text-dim);" id="sentenceCountBadge">0 Sentences</span>
+            </div>
           </div>
           <div class="sentence-stream-viewport" id="sentenceStream">
             <!-- Individual timed sentences rendered here -->
@@ -887,9 +1094,34 @@
     </footer>
   </div>
 
+  <!-- Keyboard Shortcuts Modal -->
+  <div class="kb-modal" id="kbModal">
+    <div class="kb-modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-family: 'Outfit', sans-serif; font-size: 18px;">⌨️ Keyboard Shortcuts</h3>
+        <button style="background: none; border: none; color: var(--text-dim); font-size: 18px; cursor: pointer;" id="closeKbModal">&times;</button>
+      </div>
+      <div class="kb-row"><span>Play / Pause</span><span class="kb-key">Space</span></div>
+      <div class="kb-row"><span>Rewind 15s</span><span class="kb-key">← Left</span></div>
+      <div class="kb-row"><span>Forward 30s</span><span class="kb-key">→ Right</span></div>
+      <div class="kb-row"><span>Volume Up / Down</span><span class="kb-key">↑ / ↓</span></div>
+      <div class="kb-row"><span>Mute / Unmute</span><span class="kb-key">M</span></div>
+      <div class="kb-row"><span>Cycle Speed</span><span class="kb-key">S</span></div>
+    </div>
+  </div>
+
   <div class="toast" id="toast">📋 RSS Feed URL copied to clipboard!</div>
 
   <script>
+    // Generate 32 visualizer bars
+    const soundwaveRow = document.getElementById('soundwaveBarRow');
+    for (let i = 0; i < 36; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'wave-bar';
+      bar.style.animationDelay = `${(i * 0.04).toFixed(2)}s`;
+      soundwaveRow.appendChild(bar);
+    }
+
     const audio = document.getElementById('audioElement');
     const playBtn = document.getElementById('playBtn');
     const progressBar = document.getElementById('progressBar');
@@ -899,12 +1131,19 @@
     const speedBtn = document.getElementById('speedBtn');
     const rewindBtn = document.getElementById('rewindBtn');
     const forwardBtn = document.getElementById('forwardBtn');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const muteBtn = document.getElementById('muteBtn');
     const copyRssBtn = document.getElementById('copyRssBtn');
     const toast = document.getElementById('toast');
     const episodeSelector = document.getElementById('episodeSelector');
     const sentenceStream = document.getElementById('sentenceStream');
     const autoscrollToggle = document.getElementById('autoscrollToggle');
     const sentenceCountBadge = document.getElementById('sentenceCountBadge');
+    const currentTopicPill = document.getElementById('currentTopicPill');
+    const searchInput = document.getElementById('searchInput');
+    const kbModal = document.getElementById('kbModal');
+    const kbModalBtn = document.getElementById('kbModalBtn');
+    const closeKbModal = document.getElementById('closeKbModal');
 
     let allEpisodes = [];
     let currentEpisode = null;
@@ -914,10 +1153,16 @@
     let speedIdx = 0;
     let lastActiveIndex = -1;
 
+    // Keyboard modal
+    kbModalBtn.onclick = () => kbModal.classList.add('open');
+    closeKbModal.onclick = () => kbModal.classList.remove('open');
+    kbModal.onclick = (e) => { if (e.target === kbModal) kbModal.classList.remove('open'); };
+
     autoscrollToggle.addEventListener('click', () => {
       isAutoscrollEnabled = !isAutoscrollEnabled;
       autoscrollToggle.classList.toggle('active', isAutoscrollEnabled);
       autoscrollToggle.querySelector('span').textContent = isAutoscrollEnabled ? '📌 Auto-Scroll: ON' : '📌 Auto-Scroll: OFF';
+      showToast(isAutoscrollEnabled ? '📌 Auto-scroll enabled' : '📌 Auto-scroll paused');
     });
 
     async function loadEpisodes() {
@@ -962,23 +1207,19 @@
       lastActiveIndex = -1;
       
       document.getElementById('epTitle').textContent = ep.title || 'Daily Podcast';
-      document.getElementById('epDate').textContent = ep.pub_date ? ep.pub_date.split(' ').slice(0, 4).join(' ') : 'LATEST EPISODE';
       document.getElementById('epDuration').textContent = ep.duration_formatted || '08:00';
       
-      // Reset play button and progress state
       playBtn.textContent = '▶';
       totalTimeEl.textContent = ep.duration_formatted || '08:00';
       progressFill.style.width = '0%';
       currentTimeEl.textContent = '00:00';
       
-      // Determine working relative path or public audio URL
       const relativeAudioSrc = `episodes/${ep.guid}.mp3`;
       audio.src = relativeAudioSrc;
       audio.load();
       
       audio.onerror = () => {
         if (ep.audio_url && audio.src !== ep.audio_url) {
-          console.log('Switching to absolute audio URL:', ep.audio_url);
           audio.src = ep.audio_url;
           audio.load();
         }
@@ -990,7 +1231,6 @@
       renderChapters(ep.chapters || []);
       renderVocab(ep.vocabulary || []);
 
-      // Reset scroll position to top for new episode
       if (sentenceStream) {
         sentenceStream.scrollTop = 0;
       }
@@ -999,7 +1239,7 @@
     function renderFlowingSentences(sentences) {
       sentenceStream.innerHTML = '';
       if (!sentences || sentences.length === 0) {
-        sentenceStream.innerHTML = '<p style="color: var(--text-dim); text-align: center; padding: 20px;">No sentence stream available.</p>';
+        sentenceStream.innerHTML = '<p style="color: var(--text-dim); text-align: center; padding: 20px;">No sentences available.</p>';
         return;
       }
 
@@ -1114,14 +1354,28 @@
 
     function highlightChapter(sec) {
       const items = document.querySelectorAll('.chapter-item');
+      let currentTitle = 'Introduction';
       items.forEach(el => {
         const itemSec = parseInt(el.dataset.sec, 10);
         if (sec >= itemSec) {
           items.forEach(i => i.classList.remove('active'));
           el.classList.add('active');
+          const titleEl = el.querySelector('.chapter-title');
+          if (titleEl) currentTitle = titleEl.textContent;
         }
       });
+      currentTopicPill.textContent = `🎙️ ${currentTitle}`;
     }
+
+    // Search Transcript Filter
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      const bubbles = document.querySelectorAll('.sentence-bubble');
+      bubbles.forEach(b => {
+        const text = b.textContent.toLowerCase();
+        b.style.display = !q || text.includes(q) ? 'flex' : 'none';
+      });
+    });
 
     // Playback Controls
     playBtn.addEventListener('click', () => {
@@ -1140,10 +1394,12 @@
 
     audio.addEventListener('play', () => {
       playBtn.textContent = '⏸';
+      soundwaveRow.classList.add('playing');
     });
 
     audio.addEventListener('pause', () => {
       playBtn.textContent = '▶';
+      soundwaveRow.classList.remove('playing');
     });
 
     audio.addEventListener('timeupdate', () => {
@@ -1170,19 +1426,74 @@
     rewindBtn.addEventListener('click', () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
     forwardBtn.addEventListener('click', () => { audio.currentTime = Math.min(audio.duration, audio.currentTime + 30); });
 
+    // Volume & Mute
+    volumeSlider.addEventListener('input', (e) => {
+      audio.volume = parseFloat(e.target.value);
+      muteBtn.textContent = audio.volume === 0 ? '🔇' : (audio.volume > 0.5 ? '🔊' : '🔉');
+    });
+
+    muteBtn.addEventListener('click', () => {
+      if (audio.volume > 0) {
+        audio.dataset.prevVol = audio.volume;
+        audio.volume = 0;
+        volumeSlider.value = 0;
+        muteBtn.textContent = '🔇';
+      } else {
+        const prev = parseFloat(audio.dataset.prevVol || 1);
+        audio.volume = prev;
+        volumeSlider.value = prev;
+        muteBtn.textContent = prev > 0.5 ? '🔊' : '🔉';
+      }
+    });
+
     speedBtn.addEventListener('click', () => {
       speedIdx = (speedIdx + 1) % speeds.length;
       const speed = speeds[speedIdx];
       audio.playbackRate = speed;
       speedBtn.textContent = `${speed.toFixed(speed === 1 || speed === 2 ? 1 : 2)}x`;
+      showToast(`⚡ Speed: ${speedBtn.textContent}`);
     });
 
     copyRssBtn.addEventListener('click', () => {
       const rssUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '') + '/podcast.xml';
       navigator.clipboard.writeText(rssUrl).then(() => {
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2500);
+        showToast('📋 RSS Feed URL copied to clipboard!');
       });
+    });
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    // Keyboard Shortcuts Listener
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        playBtn.click();
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        rewindBtn.click();
+      } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        forwardBtn.click();
+      } else if (e.code === 'ArrowUp') {
+        e.preventDefault();
+        audio.volume = Math.min(1, audio.volume + 0.1);
+        volumeSlider.value = audio.volume;
+        muteBtn.textContent = audio.volume > 0.5 ? '🔊' : '🔉';
+      } else if (e.code === 'ArrowDown') {
+        e.preventDefault();
+        audio.volume = Math.max(0, audio.volume - 0.1);
+        volumeSlider.value = audio.volume;
+        muteBtn.textContent = audio.volume === 0 ? '🔇' : '🔉';
+      } else if (e.key === 'm' || e.key === 'M') {
+        muteBtn.click();
+      } else if (e.key === 's' || e.key === 'S') {
+        speedBtn.click();
+      }
     });
 
     function formatTime(seconds) {
