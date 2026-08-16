@@ -2,12 +2,12 @@
 <rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
   <channel>
     <atom:link href="https://monurium.github.io/daily-podcast-generator/podcast.xml" rel="self" type="application/rss+xml"/>
-    <title>AI Pulse Daily</title>
+    <title>Fluent AI Daily</title>
     <link>https://monurium.github.io/daily-podcast-generator</link>
     <language>en-us</language>
-    <description>Your daily dose of Artificial Intelligence and tech breakthroughs, served in engaging conversational English.</description>
+    <description>Master English with daily AI news! Engaging conversational podcast covering the latest artificial intelligence breakthroughs, tech startups, and software engineering in clear, articulate English.</description>
     <itunes:author>Monurium</itunes:author>
-    <itunes:summary>Your daily dose of Artificial Intelligence and tech breakthroughs, served in engaging conversational English.</itunes:summary>
+    <itunes:summary>Master English with daily AI news! Engaging conversational podcast covering the latest artificial intelligence breakthroughs, tech startups, and software engineering in clear, articulate English.</itunes:summary>
     <itunes:explicit>false</itunes:explicit>
     <itunes:owner>
       <itunes:name>Monurium</itunes:name>
@@ -19,11 +19,11 @@
     <itunes:image href="https://monurium.github.io/daily-podcast-generator/cover.jpg"/>
     <image>
       <url>https://monurium.github.io/daily-podcast-generator/cover.jpg</url>
-      <title>AI Pulse Daily</title>
+      <title>Fluent AI Daily</title>
       <link>https://monurium.github.io/daily-podcast-generator</link>
     </image>
     <item>
-      <title>Daily AI &amp; Tech Podcast - August 16, 2026</title>
+      <title>Fluent AI Daily - August 16, 2026</title>
       <description>Today's Topics: In today's episode, Alex and Sarah explore Anthropic's new AI watermarking technology, SpaceX's major acquisition of AI coding assistant Cursor, essential security tips to audit your AI accounts, breakthroughs with the Unitree G1 humanoid robot, and record-breaking investments in clean fusion energy.</description>
       <pubDate>Sun, 16 Aug 2026 06:20:36 GMT</pubDate>
       <guid isPermaLink="false">ep_20260816_podcast_e865d2</guid>
@@ -33,7 +33,7 @@
       <enclosure url="https://monurium.github.io/daily-podcast-generator/episodes/ep_20260816_podcast_e865d2.mp3" length="4040670" type="audio/mpeg"/>
     </item>
     <item>
-      <title>Daily AI &amp; Tech Podcast - August 15, 2026</title>
+      <title>Fluent AI Daily - August 15, 2026</title>
       <description>Today's Topics: In this episode, Alex and Sarah dive into OpenAI's latest reasoning models, autonomous agent architectures, next-gen hardware acceleration, and pivotal software engineering breakthroughs.</description>
       <pubDate>Sat, 15 Aug 2026 21:02:40 GMT</pubDate>
       <guid isPermaLink="false">ep_20260815_daily_tech_ai_dialogue</guid>

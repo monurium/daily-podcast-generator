@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Pulse Daily - Podcast Player</title>
-  <meta name="description" content="Daily conversational podcast covering AI breakthroughs, tech startups, and software engineering in clear, natural English." />
+  <title>Fluent AI Daily - Podcast Player</title>
+  <meta name="description" content="Master English with daily AI news! Daily conversational podcast covering AI breakthroughs, tech startups, and software engineering in clear, articulate English." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
@@ -627,7 +627,7 @@
     <header>
       <a href="#" class="brand-logo">
         <div class="brand-icon">🎙️</div>
-        <span class="brand-title">AI Pulse Daily</span>
+        <span class="brand-title">Fluent AI Daily</span>
       </a>
     </header>
 
@@ -635,11 +635,11 @@
       <!-- Hero Details & Artwork -->
       <section class="hero-player-grid">
         <div class="cover-wrapper">
-          <img src="cover.jpg" alt="AI Pulse Daily Podcast Artwork" class="cover-img" id="podcastCover" />
+          <img src="cover.jpg" alt="Fluent AI Daily Podcast Artwork" class="cover-img" id="podcastCover" />
         </div>
         <div class="hero-details">
-          <h1>Daily AI & Tech Podcast</h1>
-          <p>Automated daily conversational podcast covering breakthrough AI research, startups, and software engineering in clear, natural English.</p>
+          <h1>Fluent AI Daily</h1>
+          <p>Master English with daily AI news! Daily conversational podcast covering breakthrough AI research, startups, and software engineering in clear, articulate English.</p>
           <div class="button-group">
             <a href="https://open.spotify.com/" target="_blank" class="btn btn-spotify">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.498 17.306c-.215.352-.676.463-1.028.248-2.817-1.721-6.364-2.111-10.542-1.157-.402.092-.801-.16-.893-.562-.092-.403.16-.802.562-.894 4.571-1.044 8.492-.599 11.653 1.337.352.215.464.676.248 1.028zm1.468-3.262c-.27.441-.847.58-1.288.31-3.225-1.982-8.142-2.556-11.956-1.398-.497.151-1.024-.134-1.175-.631-.151-.498.134-1.024.631-1.176 4.364-1.325 9.787-.687 13.478 1.583.441.27.58.847.31 1.312zm.126-3.41c-3.867-2.296-10.248-2.508-13.941-1.387-.593.18-1.22-.162-1.4-.755-.18-.593.162-1.22.755-1.4 4.246-1.289 11.294-1.042 15.753 1.605.533.316.707 1.011.391 1.544-.316.533-1.011.707-1.558.393z"/></svg>
@@ -673,7 +673,7 @@
         <div class="player-header">
           <div>
             <div class="episode-meta-tag" id="epDate">LATEST EPISODE</div>
-            <h2 class="episode-title" id="epTitle">Daily AI & Tech Podcast</h2>
+            <h2 class="episode-title" id="epTitle">Fluent AI Daily</h2>
             <p class="episode-topics-summary" id="epTopics"><strong style="color: var(--accent-cyan);">Today's Topics:</strong> Loading episode summary...</p>
           </div>
         </div>
@@ -800,7 +800,7 @@
         episodeSelect.value = currentIdx;
       }
       
-      document.getElementById('epTitle').textContent = ep.title || 'Daily AI & Tech Podcast';
+      document.getElementById('epTitle').textContent = ep.title || 'Fluent AI Daily';
       document.getElementById('epDate').textContent = ep.pub_date ? ep.pub_date.split(' ').slice(0, 4).join(' ') : 'LATEST EPISODE';
       
       const topicsText = ep.todays_topics || ep.summary || '';
