@@ -253,8 +253,8 @@ class ContentGenerator:
             "rich_description": rich_description
         }
 
-    def extract_timed_sentences(self, script_text: str, total_duration_seconds: float = 643.0) -> List[Dict[str, Any]]:
-        """Extracts turn-aware, character-weighted, and pause-calibrated sentence timestamps."""
+    def extract_timed_sentences(self, script_text: str, total_duration_seconds: float = 643.0, intro_offset: float = 5.3) -> List[Dict[str, Any]]:
+        """Extracts turn-aware, character-weighted sentence timestamps calibrated after intro music."""
         import re
         raw_blocks = [b.strip() for b in script_text.split('\n\n') if b.strip()]
         turns_data = []
@@ -279,8 +279,10 @@ class ContentGenerator:
             turns_data.append({'speaker': speaker, 'sentences': turn_sentences, 'turn_weight': turn_weight})
             total_raw_weight += turn_weight
 
-        scale_factor = total_duration_seconds / total_raw_weight if total_raw_weight > 0 else 1.0
-        cum_time = 0.0
+        # Speech duration between intro (5.3s) and outro (6.3s)
+        total_speech_sec = max(30.0, total_duration_seconds - intro_offset - 6.3) if total_duration_seconds > (intro_offset + 10) else total_duration_seconds
+        scale_factor = total_speech_sec / total_raw_weight if total_raw_weight > 0 else 1.0
+        cum_time = intro_offset
         timed_sentences = []
 
         for t in turns_data:

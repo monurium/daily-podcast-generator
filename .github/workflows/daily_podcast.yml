@@ -45,5 +45,5 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f dist/ podcast.xml episodes/ index.html cover.jpg episodes_manifest.json
+          git add -f dist/ podcast.xml episodes/ index.html cover.jpg episodes_manifest.json assets/
           git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-generate daily podcast episode [skip ci]" && git push)

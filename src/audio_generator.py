@@ -301,8 +301,42 @@ class AudioGenerator:
 
         return output_mp3
 
+    def _attach_intro_outro(self, output_path: str, intro_path: str = "assets/audio/intro.mp3", outro_path: str = "assets/audio/outro.mp3") -> int:
+        """Prepends royalty-free intro music and appends outro music to the episode MP3."""
+        if not os.path.exists(output_path):
+            return 0
+
+        with open(output_path, "rb") as f:
+            main_bytes = f.read()
+
+        intro_bytes = b""
+        if os.path.exists(intro_path):
+            with open(intro_path, "rb") as f:
+                intro_bytes = f.read()
+
+        outro_bytes = b""
+        if os.path.exists(outro_path):
+            with open(outro_path, "rb") as f:
+                outro_bytes = f.read()
+
+        pause_short = generate_silent_mp3_bytes(300)
+
+        with open(output_path, "wb") as f:
+            if intro_bytes:
+                f.write(intro_bytes)
+                f.write(pause_short)
+            f.write(main_bytes)
+            if outro_bytes:
+                f.write(pause_short)
+                f.write(outro_bytes)
+
+        file_size_bytes = os.path.getsize(output_path)
+        # Standard 64kbps MP3 = 8000 bytes per second
+        exact_duration_sec = max(30, int(file_size_bytes / 8000))
+        return exact_duration_sec
+
     def dialogue_to_audio(self, dialogue_script: str, output_path: str) -> Dict[str, Any]:
-        """Synthesizes 2-host podcast conversation to MP3 with multi-level fallbacks."""
+        """Synthesizes 2-host podcast conversation to MP3 with intro/outro and fallbacks."""
         audio_created = False
         duration_seconds = 0
 
@@ -317,10 +351,14 @@ class AudioGenerator:
             words = len(dialogue_script.split())
             duration_seconds = max(30, int((words / 130.0) * 60))
 
+        # Attach professional royalty-free intro and outro jingles
+        if os.path.exists(output_path):
+            duration_seconds = self._attach_intro_outro(output_path)
+
         return self._build_audio_metadata(output_path, duration_seconds)
 
     def text_to_audio(self, script_text: str, output_path: str) -> Dict[str, Any]:
-        """Synthesizes monologue podcast to MP3."""
+        """Synthesizes monologue podcast to MP3 with intro/outro."""
         audio_created = False
         duration_seconds = 0
 
@@ -331,5 +369,9 @@ class AudioGenerator:
             asyncio.run(self.build_audio_monologue_edge(script_text, output_path))
             words = len(script_text.split())
             duration_seconds = max(30, int((words / 130.0) * 60))
+
+        # Attach professional royalty-free intro and outro jingles
+        if os.path.exists(output_path):
+            duration_seconds = self._attach_intro_outro(output_path)
 
         return self._build_audio_metadata(output_path, duration_seconds)
