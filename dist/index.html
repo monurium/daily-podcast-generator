@@ -247,37 +247,73 @@
       transform: translateY(-2px);
     }
 
-    /* Episode Selector Pills */
-    .episode-selector-container {
+    /* Modern Episode Dropdown Menu */
+    .episode-dropdown-wrapper {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin: 10px 0 24px;
-      overflow-x: auto;
-      padding-bottom: 6px;
+      gap: 14px;
+      margin: 10px 0 26px;
+      flex-wrap: wrap;
     }
 
-    .ep-pill {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-muted);
-      padding: 8px 18px;
-      border-radius: 20px;
-      font-size: 13px;
+    .dropdown-label {
+      font-size: 14px;
       font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.2px;
+    }
+
+    .custom-select-container {
+      position: relative;
+      display: inline-block;
+      min-width: 280px;
+    }
+
+    .modern-episode-select {
+      width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background: rgba(18, 24, 38, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--text-main);
+      padding: 10px 42px 10px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
       cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s;
+      outline: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
-    .ep-pill:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-    }
-    .ep-pill.active {
-      background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(121, 40, 202, 0.3));
+
+    .modern-episode-select:hover {
+      background: rgba(28, 36, 56, 0.95);
       border-color: var(--accent-cyan);
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+    }
+
+    .modern-episode-select:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.35);
+    }
+
+    .modern-episode-select option {
+      background: #0d121f;
       color: #fff;
-      box-shadow: 0 0 18px rgba(0, 242, 254, 0.25);
+      padding: 10px;
+    }
+
+    .select-arrow {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--accent-cyan);
+      font-size: 14px;
     }
 
     /* Audio Player Card */
@@ -598,10 +634,6 @@
         <div class="brand-icon">🎙️</div>
         <span class="brand-title">AI Pulse Daily</span>
       </a>
-      <div class="live-badge">
-        <span class="pulse-dot"></span>
-        Spotify & Apple Podcasts
-      </div>
     </header>
 
     <main>
@@ -630,9 +662,15 @@
         </div>
       </section>
 
-      <!-- Episode Selector -->
-      <div class="episode-selector-container" id="episodeSelector">
-        <!-- Episode pills dynamically added -->
+      <!-- Modern Episode Dropdown Menu -->
+      <div class="episode-dropdown-wrapper">
+        <label for="episodeSelect" class="dropdown-label">📅 Select Episode:</label>
+        <div class="custom-select-container">
+          <select id="episodeSelect" class="modern-episode-select" title="Choose a podcast episode">
+            <!-- Dynamically populated options -->
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
       </div>
 
       <!-- Pure Web Audio Player -->
@@ -712,7 +750,7 @@
     const muteBtn = document.getElementById('muteBtn');
     const copyRssBtn = document.getElementById('copyRssBtn');
     const toast = document.getElementById('toast');
-    const episodeSelector = document.getElementById('episodeSelector');
+    const episodeSelect = document.getElementById('episodeSelect');
 
     let allEpisodes = [];
     let currentEpisode = null;
@@ -729,7 +767,7 @@
           const episodes = await res.json();
           if (episodes && episodes.length > 0) {
             allEpisodes = episodes;
-            renderEpisodePills(allEpisodes);
+            renderEpisodeDropdown(allEpisodes);
             setupPlayer(allEpisodes[0]);
             return;
           }
@@ -739,25 +777,33 @@
       }
     }
 
-    function renderEpisodePills(episodes) {
-      episodeSelector.innerHTML = '';
+    function renderEpisodeDropdown(episodes) {
+      if (!episodeSelect) return;
+      episodeSelect.innerHTML = '';
       episodes.forEach((ep, idx) => {
-        const pill = document.createElement('button');
-        pill.className = `ep-pill ${idx === 0 ? 'active' : ''}`;
+        const opt = document.createElement('option');
+        opt.value = idx;
         const dateStr = ep.pub_date ? ep.pub_date.split(' ').slice(1, 4).join(' ') : `Episode ${idx + 1}`;
-        pill.textContent = `📅 ${dateStr}`;
-        pill.onclick = () => {
-          document.querySelectorAll('.ep-pill').forEach(p => p.classList.remove('active'));
-          pill.classList.add('active');
-          setupPlayer(ep);
-        };
-        episodeSelector.appendChild(pill);
+        opt.textContent = idx === 0 ? `📅 ${dateStr} (Latest Episode)` : `📅 ${dateStr}`;
+        episodeSelect.appendChild(opt);
       });
+
+      episodeSelect.onchange = (e) => {
+        const selectedIdx = parseInt(e.target.value, 10);
+        if (allEpisodes[selectedIdx]) {
+          setupPlayer(allEpisodes[selectedIdx]);
+        }
+      };
     }
 
     function setupPlayer(ep) {
       if (!ep) return;
       currentEpisode = ep;
+      
+      const currentIdx = allEpisodes.findIndex(e => e.guid === ep.guid);
+      if (episodeSelect && currentIdx !== -1) {
+        episodeSelect.value = currentIdx;
+      }
       
       document.getElementById('epTitle').textContent = ep.title || 'Daily AI & Tech Podcast';
       document.getElementById('epDate').textContent = ep.pub_date ? ep.pub_date.split(' ').slice(0, 4).join(' ') : 'LATEST EPISODE';
