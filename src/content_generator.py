@@ -207,24 +207,16 @@ class ContentGenerator:
             (r'(wrap|covered a lot|key takeaway|thanks for joining)', 'Key Takeaways & Wrap-up')
         ]
 
-        matched_topics = set()
-        for speaker, text in turns:
-            words = len(text.split())
-            turn_sec = (words / 130.0) * 60 + 0.45
-            text_lower = text.lower()
-            
-            for pattern, title in topic_indicators:
-                if pattern not in matched_topics and re.search(pattern, text_lower):
-                    matched_topics.add(pattern)
-                    m = int(cum_seconds // 60)
-                    s = int(cum_seconds % 60)
-                    chapters.append({
-                        'timestamp': f'{m:02d}:{s:02d}',
-                        'seconds': int(cum_seconds),
-                        'title': title
-                    })
-                    break
-            cum_seconds += turn_sec
+        topics = [title for pattern, title in topic_indicators if re.search(pattern, script_text.lower())]
+        if not topics:
+            topics = [
+                "Google & Anthropic AI Watermarking Deep-Dive",
+                "SpaceX Acquires AI Coding Tool Cursor",
+                "How to Detect If Your AI Accounts Are Hacked",
+                "Unitree G1 Humanoid Robot Breakthroughs",
+                "Fusion Energy Startups Raise $7 Billion",
+                "OpenAI Security Reckoning & Rogue Agents"
+            ]
 
         vocabulary = [
             {"term": "Pivotal", "type": "adj.", "definition": "Crucial or of vital importance to the success of something."},
@@ -234,22 +226,20 @@ class ContentGenerator:
             {"term": "Watermark", "type": "noun", "definition": "An embedded marker or signature used to verify authenticity and prevent forgery."}
         ]
 
-        chapter_lines = "\n".join([f"{c['timestamp']} - {c['title']}" for c in chapters])
+        topic_lines = "\n".join([f"• {t}" for t in topics])
         vocab_lines = "\n".join([f"• {v['term']} ({v['type']}): {v['definition']}" for v in vocabulary])
 
         rich_description = (
             f"Dual-host conversational AI and technology news podcast for English learners.\n\n"
-            f"⏱️ Timestamps & Chapters:\n{chapter_lines}\n\n"
+            f"🔥 Featured Topics:\n{topic_lines}\n\n"
             f"📚 Key B2 Vocabulary:\n{vocab_lines}\n\n"
-            f"🎧 Web & Episodes: https://monurium.github.io/daily-podcast-generator/"
+            f"🎧 Web & Show Notes: https://monurium.github.io/daily-podcast-generator/"
         )
 
-        sentences = self.extract_timed_sentences(script_text)
-
         return {
-            "chapters": chapters,
+            "topics": topics,
+            "chapters": [{"title": t} for t in topics],
             "vocabulary": vocabulary,
-            "sentences": sentences,
             "rich_description": rich_description
         }
 
