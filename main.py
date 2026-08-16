@@ -50,7 +50,7 @@ def run_daily_podcast_pipeline(test_mode: bool = False):
 
     # Save script texts locally
     os.makedirs("output", exist_ok=True)
-    script_file_path = os.path.join("output", "b2_script.txt")
+    script_file_path = os.path.join("output", "monologue_script.txt")
     dialogue_file_path = os.path.join("output", "dialogue_script.txt")
     
     with open(script_file_path, "w", encoding="utf-8") as f:

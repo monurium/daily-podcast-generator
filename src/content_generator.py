@@ -177,69 +177,14 @@ class ContentGenerator:
         }
 
     def extract_chapters_and_vocabulary(self, script_text: str) -> Dict[str, Any]:
-        """Extracts dynamic chapter timestamps (MM:SS) and key B2 vocabulary from dialogue scripts."""
-        import re
-        turns = []
-        for block in script_text.split('\n\n'):
-            b = block.strip()
-            if b:
-                speaker = 'Alex' if b.startswith('Alex:') else ('Sarah' if b.startswith('Sarah:') else '')
-                text = re.sub(r'^(Alex|Sarah):\s*', '', b)
-                turns.append((speaker, text))
-
-        cum_seconds = 0
-        chapters = [{'timestamp': '00:00', 'seconds': 0, 'title': 'Introduction & Daily Overview'}]
-
-        topic_indicators = [
-            (r'(spacex|cursor|coding tool)', 'SpaceX Acquires AI Coding Tool Cursor'),
-            (r'(watermark|synthid|invisible tag)', 'Google & Anthropic AI Watermarking'),
-            (r'(unitree|humanoid|robot influencer)', 'Unitree G1 Humanoid Robot Phenomenon'),
-            (r'(tim o\'reilly|open source ai)', 'Tim O\'Reilly on the Future of Open AI'),
-            (r'(openai|safety reckoning|rogue agent)', 'OpenAI Security Reckoning & Rogue Agent'),
-            (r'(paypal|stripe|fintech acquisition)', 'PayPal Acquisition Talks with Stripe & Advent'),
-            (r'(fusion|clean energy|experiment)', 'Fusion Energy Startups Raise $7 Billion'),
-            (r'(hacked|account security|two-factor)', 'How to Detect If Your AI Accounts Are Hacked'),
-            (r'(prediction market|novig|betting)', 'Prediction Markets & Youth Regulations'),
-            (r'(electric aircraft|hybrid-electric)', 'All-Electric Aircraft Completes Test Flight'),
-            (r'(schools|classroom|students)', 'Google Enables Gemini AI for Students'),
-            (r'(gpus|hardware|inference speed)', 'GPU Inference Breakthroughs for AI Agents'),
-            (r'(natural gas|data center|energy)', 'Data Center Energy Costs & Grid Demand'),
-            (r'(wrap|covered a lot|key takeaway|thanks for joining)', 'Key Takeaways & Wrap-up')
-        ]
-
-        topics = [title for pattern, title in topic_indicators if re.search(pattern, script_text.lower())]
-        if not topics:
-            topics = [
-                "Google & Anthropic AI Watermarking Deep-Dive",
-                "SpaceX Acquires AI Coding Tool Cursor",
-                "How to Detect If Your AI Accounts Are Hacked",
-                "Unitree G1 Humanoid Robot Breakthroughs",
-                "Fusion Energy Startups Raise $7 Billion",
-                "OpenAI Security Reckoning & Rogue Agents"
-            ]
-
-        vocabulary = [
-            {"term": "Pivotal", "type": "adj.", "definition": "Crucial or of vital importance to the success of something."},
-            {"term": "Inference", "type": "noun", "definition": "The phase where a trained AI model processes data and makes real-time decisions."},
-            {"term": "Autonomous", "type": "adj.", "definition": "Having the freedom and capability to operate independently without human intervention."},
-            {"term": "Consolidation", "type": "noun", "definition": "The combining of separate organizations or businesses into a single unified entity."},
-            {"term": "Watermark", "type": "noun", "definition": "An embedded marker or signature used to verify authenticity and prevent forgery."}
-        ]
-
-        topic_lines = "\n".join([f"• {t}" for t in topics])
-        vocab_lines = "\n".join([f"• {v['term']} ({v['type']}): {v['definition']}" for v in vocabulary])
-
+        """Generates clean, plain English podcast metadata."""
         rich_description = (
-            f"Dual-host conversational AI and technology news podcast for English learners.\n\n"
-            f"🔥 Featured Topics:\n{topic_lines}\n\n"
-            f"📚 Key B2 Vocabulary:\n{vocab_lines}\n\n"
-            f"🎧 Web & Show Notes: https://monurium.github.io/daily-podcast-generator/"
+            "Daily 10-minute conversational podcast covering the latest artificial intelligence breakthroughs, "
+            "tech startups, and software engineering news in clear, articulate English."
         )
 
         return {
-            "topics": topics,
-            "chapters": [{"title": t} for t in topics],
-            "vocabulary": vocabulary,
+            "summary": rich_description,
             "rich_description": rich_description
         }
 
