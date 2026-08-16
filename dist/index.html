@@ -965,25 +965,35 @@
       document.getElementById('epDate').textContent = ep.pub_date ? ep.pub_date.split(' ').slice(0, 4).join(' ') : 'LATEST EPISODE';
       document.getElementById('epDuration').textContent = ep.duration_formatted || '08:00';
       
-      // Determine working relative path or public audio URL
-      const relativeAudioSrc = `episodes/${ep.guid}.mp3`;
-      audio.src = relativeAudioSrc;
-      
-      audio.onerror = () => {
-        if (ep.audio_url && audio.src !== ep.audio_url) {
-          audio.src = ep.audio_url;
-        }
-      };
-
+      // Reset play button and progress state
+      playBtn.textContent = '▶';
       totalTimeEl.textContent = ep.duration_formatted || '08:00';
       progressFill.style.width = '0%';
       currentTimeEl.textContent = '00:00';
+      
+      // Determine working relative path or public audio URL
+      const relativeAudioSrc = `episodes/${ep.guid}.mp3`;
+      audio.src = relativeAudioSrc;
+      audio.load();
+      
+      audio.onerror = () => {
+        if (ep.audio_url && audio.src !== ep.audio_url) {
+          console.log('Switching to absolute audio URL:', ep.audio_url);
+          audio.src = ep.audio_url;
+          audio.load();
+        }
+      };
 
       activeSentences = ep.sentences || [];
       sentenceCountBadge.textContent = `${activeSentences.length} Sentences`;
       renderFlowingSentences(activeSentences);
       renderChapters(ep.chapters || []);
       renderVocab(ep.vocabulary || []);
+
+      // Reset scroll position to top for new episode
+      if (sentenceStream) {
+        sentenceStream.scrollTop = 0;
+      }
     }
 
     function renderFlowingSentences(sentences) {
