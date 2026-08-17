@@ -23,6 +23,16 @@
       <link>https://monurium.github.io/daily-podcast-generator</link>
     </image>
     <item>
+      <title>Fluent AI Daily - August 17, 2026</title>
+      <description>Daily conversational podcast covering the latest artificial intelligence breakthroughs, tech startups, and software engineering news in clear, articulate English.</description>
+      <pubDate>Mon, 17 Aug 2026 06:30:14 GMT</pubDate>
+      <guid isPermaLink="false">ep_20260817_podcast_807117</guid>
+      <itunes:author>Monurium</itunes:author>
+      <itunes:duration>00:09:59</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+      <enclosure url="https://monurium.github.io/daily-podcast-generator/episodes/ep_20260817_podcast_807117.mp3" length="4795266" type="audio/mpeg"/>
+    </item>
+    <item>
       <title>Fluent AI Daily - August 16, 2026</title>
       <description>Today's Topics: In today's episode, Alex and Sarah explore Anthropic's new AI watermarking technology, SpaceX's major acquisition of AI coding assistant Cursor, essential security tips to audit your AI accounts, breakthroughs with the Unitree G1 humanoid robot, and record-breaking investments in clean fusion energy.</description>
       <pubDate>Sun, 16 Aug 2026 06:20:36 GMT</pubDate>
