@@ -117,12 +117,11 @@ class AudioGenerator:
             print(f"⚠️ Google AI Studio error ({e}).")
             return False, 0
 
-    def _consolidate_dialogue_turns(self, turns: List[Tuple[str, str]], max_turns: int = 8) -> List[Tuple[str, str]]:
-        """Consolidates short turns into 6-8 high-impact speaker exchanges to minimize API calls and stay well under 10 RPM."""
+    def _clean_speaker_turns(self, turns: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
+        """Merges consecutive lines by the SAME speaker and strips markdown, preserving 100% pure speaker separation."""
         if not turns:
             return []
         
-        # Step 1: Merge consecutive turns by the same speaker
         merged: List[Tuple[str, str]] = []
         for speaker, text in turns:
             clean = re.sub(r'\[.*?\]|\(.*?\)', '', text).strip()
@@ -134,39 +133,21 @@ class AudioGenerator:
             else:
                 merged.append((speaker, clean))
 
-        if len(merged) <= max_turns:
-            return merged
-
-        # Step 2: Consolidate into max_turns alternating speaker passages
-        step = len(merged) / max_turns
-        consolidated: List[Tuple[str, str]] = []
-        for i in range(max_turns):
-            start_idx = int(i * step)
-            end_idx = int((i + 1) * step) if i < max_turns - 1 else len(merged)
-            slice_turns = merged[start_idx:end_idx]
-            if not slice_turns:
-                continue
-            
-            # Determine primary speaker for this chunk (alternating Alex / Sarah)
-            expected_speaker = "Alex" if i % 2 == 0 else "Sarah"
-            chunk_text = " ".join([t[1] for t in slice_turns])
-            consolidated.append((expected_speaker, chunk_text))
-
-        return consolidated
+        return merged
 
     def _generate_gemini_dialogue_audio(self, dialogue_script: str, output_path: str) -> Tuple[bool, int]:
-        """Synthesizes 2-host podcast conversation (Alex: Puck, Sarah: Aoede) in 6-8 consolidated turns (<10 RPM)."""
+        """Synthesizes 2-host podcast conversation with strict speaker separation (Alex: Puck [Male], Sarah: Aoede [Female])."""
         if not self.gemini_api_key:
             return False, 0
 
         raw_turns = self._parse_dialogue_turns(dialogue_script)
-        consolidated_turns = self._consolidate_dialogue_turns(raw_turns, max_turns=8)
-        valid_turns = [(idx, speaker, text) for idx, (speaker, text) in enumerate(consolidated_turns) if text]
+        clean_turns = self._clean_speaker_turns(raw_turns)
+        valid_turns = [(idx, speaker, text) for idx, (speaker, text) in enumerate(clean_turns) if text]
         
         if not valid_turns:
             return False, 0
 
-        print(f"✨ Synthesizing 2-host dialogue via Google AI Studio Gemini 2.5 Flash ({len(valid_turns)} consolidated turns, 100% quota safe)...")
+        print(f"✨ Synthesizing 2-host dialogue with pure speaker separation ({len(valid_turns)} turns: Alex [Puck] vs Sarah [Aoede])...")
         try:
             from google import genai
             from google.genai import types
