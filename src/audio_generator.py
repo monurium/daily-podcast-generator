@@ -336,20 +336,13 @@ class AudioGenerator:
         return exact_duration_sec
 
     def dialogue_to_audio(self, dialogue_script: str, output_path: str) -> Dict[str, Any]:
-        """Synthesizes 2-host podcast conversation to MP3 with intro/outro and fallbacks."""
-        audio_created = False
-        duration_seconds = 0
-
-        if self.gemini_api_key:
-            audio_created, duration_seconds = self._generate_gemini_dialogue_audio(dialogue_script, output_path)
-            if not audio_created:
-                print("✨ Trying Single-Call Google AI Studio Podcast Narrator (1 API request)...")
-                audio_created, duration_seconds = self._generate_gemini_audio(dialogue_script, output_path)
-
-        if not audio_created:
-            asyncio.run(self.build_audio_dialogue_edge(dialogue_script, output_path))
-            words = len(dialogue_script.split())
-            duration_seconds = max(30, int((words / 130.0) * 60))
+        """Synthesizes 2-host podcast conversation to MP3 with strictly consistent voices (Alex: Male, Sarah: Female)."""
+        # Edge-TTS provides 100% reliable, zero-quota-limit, turn-by-turn distinct speaker separation
+        print("🎙️ Synthesizing 2-Host Dialogue with 100% Voice Consistency (Alex: Christopher [Male], Sarah: Ava [Female])...")
+        asyncio.run(self.build_audio_dialogue_edge(dialogue_script, output_path))
+        
+        words = len(dialogue_script.split())
+        duration_seconds = max(30, int((words / 130.0) * 60))
 
         # Attach professional royalty-free intro and outro jingles
         if os.path.exists(output_path):

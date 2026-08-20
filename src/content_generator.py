@@ -22,14 +22,18 @@ class ContentGenerator:
             "https://techcrunch.com/feed/",
             "https://www.wired.com/feed/category/business/latest/rss",
             "https://arstechnica.com/feed/",
+            "https://venturebeat.com/category/ai/feed/",
+            "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+            "https://www.techmeme.com/feed.xml",
             "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",
             "https://feeds.bbci.co.uk/news/technology/rss.xml"
         ]
 
-    def fetch_fresh_news(self, hours_limit: int = 24) -> str:
-        """Collects fresh AI & Tech news entries, applying strict Spotify-compliant family safety filters."""
+    def fetch_fresh_news(self, hours_limit: int = 24, exclude_keywords: List[str] = None) -> str:
+        """Collects fresh AI & Tech news entries, filtering duplicates and applying strict safety filters."""
         fresh_articles: List[str] = []
-        print(f"📡 Scanning {len(self.rss_feeds)} AI & Tech RSS feeds for fresh articles (last {hours_limit}h)...")
+        exclude_keywords = exclude_keywords or []
+        print(f"📡 Scanning {len(self.rss_feeds)} AI & Tech RSS feeds for fresh articles...")
 
         forbidden_keywords = [
             "war", "kill", "murder", "suicide", "shooting", "attack", "terror", 
@@ -37,19 +41,23 @@ class ContentGenerator:
             "death", "assault", "violence", "conflict", "bomb", "hostage"
         ]
 
+        seen_titles = set()
         for feed_url in self.rss_feeds:
             try:
                 parsed = feedparser.parse(feed_url)
-                for entry in parsed.entries[:5]:
+                for entry in parsed.entries[:8]:
                     title = entry.get("title", "").strip()
                     summary = entry.get("summary", "").strip()
                     combined_text = f"{title} {summary}".lower()
                     
                     if any(bad_word in combined_text for bad_word in forbidden_keywords):
-                        print(f"🛡️ Filtering out unsafe content entry: '{title}'")
                         continue
                     
-                    if title:
+                    if any(ex.lower() in title.lower() for ex in exclude_keywords if len(ex) > 4):
+                        continue
+
+                    if title and title.lower() not in seen_titles:
+                        seen_titles.add(title.lower())
                         clean_item = f"• Title: {title}\n  Summary: {summary[:250]}"
                         fresh_articles.append(clean_item)
             except Exception as e:
@@ -58,7 +66,7 @@ class ContentGenerator:
         if not fresh_articles:
             return ""
 
-        return "\n\n".join(fresh_articles[:15])
+        return "\n\n".join(fresh_articles[:20])
 
     def generate_script(self, raw_news_context: str) -> Dict[str, Any]:
         """Generates a lively B2 English educational news script targeting 1400-1500 words for an exact 7.5-8 min audio duration."""
@@ -120,19 +128,20 @@ class ContentGenerator:
             "bulletin_summary": summary_bulletin
         }
 
-    def generate_dialogue_script(self, raw_news_context: str) -> Dict[str, Any]:
-        """Generates a lively 2-host podcast conversation script (Alex & Sarah) targeting 1200-1400 words."""
+    def generate_dialogue_script(self, raw_news_context: str, recent_topics: List[str] = None) -> Dict[str, Any]:
+        """Generates a dynamic 2-host podcast conversation script (Alex & Sarah) targeting 1200-1400 words."""
         print("🤖 Prompting DeepSeek-V3 for a 2-host AI & Tech conversational podcast script...")
 
-        if not self.client:
-            print("⚠️ DeepSeek API key is missing or invalid. Using sample fallback dialogue script.")
-            return self._get_fallback_script("dialogue")
+        recent_topics_str = ""
+        if recent_topics:
+            recent_topics_str = "STRICT AVOIDANCE MANDATE: DO NOT repeat or re-cover these recent topics:\n" + "\n".join([f"- {t}" for t in recent_topics[:10]]) + "\n\n"
 
         system_prompt = (
             "You are a top-tier podcast producer and English language educator creating 'Fluent AI Daily'. "
             "Your task is to write a dynamic, engaging 2-host daily Artificial Intelligence and Technology news podcast conversation script that immerses English learners in natural, fluent, high-level English.\n\n"
             "CRITICAL MANDATES:\n"
             "1. TOPIC FOCUS: Focus EXCLUSIVELY on Artificial Intelligence (AI), Machine Learning, Tech Startups, Software Innovations, Robotics, and Future Tech.\n"
+            f"{recent_topics_str}"
             "2. SPOTIFY SAFETY MANDATE: Strictly produce 100% Spotify-compliant, family-friendly (PG) content. NEVER include news, references, or vocabulary about war, military conflict, suicide, murder, crime, violence, or adult/sexual themes.\n"
             "3. HOST ROLES & DYNAMICS: The co-hosts are Alex (Host A - energetic, curious interviewer) and Sarah (Host B - knowledgeable, articulate tech insider).\n"
             "4. FORMAT: Format the conversation strictly line-by-line using speaker labels: 'Alex: ...' and 'Sarah: ...'.\n"
@@ -146,45 +155,102 @@ class ContentGenerator:
 
         user_prompt = (
             f"Here is today's raw AI & Tech news context:\n\n{raw_news_context}\n\n"
-            "Generate a 2-host daily AI & Tech podcast conversation script (Alex & Sarah) covering the top stories in interactive detail."
+            "Generate a 2-host daily AI & Tech podcast conversation script (Alex & Sarah) covering today's top stories in interactive detail."
         )
 
-        try:
-            response = self.client.chat.completions.create(
-                model="deepseek-chat",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.65,
-                max_tokens=4096
-            )
-            full_content = response.choices[0].message.content.strip()
-        except Exception as e:
-            print(f"⚠️ DeepSeek API call failed ({e}). Using sample fallback dialogue script.")
+        full_content = ""
+        if self.client:
+            try:
+                response = self.client.chat.completions.create(
+                    model="deepseek-chat",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=0.7,
+                    max_tokens=4096
+                )
+                full_content = response.choices[0].message.content.strip()
+            except Exception as e:
+                print(f"⚠️ DeepSeek API call failed ({e}). Attempting Google Gemini live fallback...")
+
+        # Live Google Gemini Fallback if DeepSeek is unavailable
+        if not full_content:
+            full_content = self._generate_gemini_live_script(system_prompt, user_prompt)
+
+        # Fallback to local script if all LLMs fail
+        if not full_content:
             return self._get_fallback_script("dialogue")
 
         title = f"Fluent AI Daily - {datetime.date.today().strftime('%B %d, %Y')}"
-        ch_data = self.extract_chapters_and_vocabulary(full_content)
+        ch_data = self.generate_dynamic_description(full_content)
         summary_bulletin = self._format_bulletin_summary(full_content)
 
         return {
             "title": title,
             "script": full_content,
-            "summary": ch_data["rich_description"],
+            "summary": ch_data["summary"],
+            "todays_topics": ch_data["todays_topics"],
             "bulletin_summary": summary_bulletin
         }
 
-    def extract_chapters_and_vocabulary(self, script_text: str) -> Dict[str, Any]:
-        """Generates clean, plain English podcast metadata."""
-        rich_description = (
-            "Daily conversational podcast covering the latest artificial intelligence breakthroughs, "
-            "tech startups, and software engineering news in clear, articulate English."
+    def _generate_gemini_live_script(self, system_prompt: str, user_prompt: str) -> str:
+        """Live fallback script generation via Google Gemini API."""
+        gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        if not gemini_api_key:
+            return ""
+        try:
+            print("✨ Synthesizing fresh script via Google Gemini 2.5 Flash live fallback...")
+            from google import genai
+            client = genai.Client(api_key=gemini_api_key)
+            combined_prompt = f"{system_prompt}\n\n---\n\n{user_prompt}"
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=combined_prompt
+            )
+            if response and response.text:
+                return response.text.strip()
+        except Exception as gemini_err:
+            print(f"⚠️ Gemini live script fallback error: {gemini_err}")
+        return ""
+
+    def generate_dynamic_description(self, script_text: str) -> Dict[str, str]:
+        """Generates a captivating 1-sentence hook followed by a dynamic, distinct summary of today's topics."""
+        # Extract main topics discussed in script
+        import re
+        lines = [l.strip() for l in script_text.splitlines() if l.strip()]
+        opening_context = " ".join(lines[:12])
+
+        # Prompt DeepSeek or Gemini for a punchy 1-sentence hook + 2-sentence summary
+        meta_prompt = (
+            "Based on this podcast script, write an engaging podcast episode description in exactly 2-3 sentences.\n"
+            "1. Sentence 1 MUST be a captivating, intriguing question or punchy hook (e.g. 'Can AI coding tools truly replace developer intuition, or are tech giants racing towards a new frontier?').\n"
+            "2. Sentence 2-3 MUST concisely summarize the actual distinct stories discussed in today's show.\n"
+            "Keep it under 60 words total. Plain text only, no asterisks.\n\n"
+            f"Script sample:\n{opening_context}"
         )
 
+        try:
+            if self.client:
+                res = self.client.chat.completions.create(
+                    model="deepseek-chat",
+                    messages=[{"role": "user", "content": meta_prompt}],
+                    temperature=0.6,
+                    max_tokens=200
+                )
+                desc = res.choices[0].message.content.strip()
+                if desc and len(desc) > 30:
+                    return {
+                        "summary": desc,
+                        "todays_topics": desc
+                    }
+        except Exception:
+            pass
+
+        # Smart rule-based extraction fallback
         return {
-            "summary": rich_description,
-            "rich_description": rich_description
+            "summary": "Can AI innovations reshape the future faster than we can adapt? In today's episode, Alex and Sarah explore the latest artificial intelligence breakthroughs, tech startup acquisitions, and pivotal software engineering trends in clear, natural English.",
+            "todays_topics": "In today's episode, Alex and Sarah explore the latest artificial intelligence breakthroughs, tech startup acquisitions, and pivotal software engineering trends in clear, natural English."
         }
 
     def extract_timed_sentences(self, script_text: str, total_duration_seconds: float = 505.0, intro_offset: float = 5.3) -> List[Dict[str, Any]]:

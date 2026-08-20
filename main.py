@@ -3,6 +3,7 @@ import shutil
 import json
 import uuid
 import datetime
+import re
 from dotenv import load_dotenv
 
 from src.content_generator import ContentGenerator
@@ -36,17 +37,51 @@ def run_daily_podcast_pipeline(test_mode: bool = False):
     base_url = os.getenv("PODCAST_BASE_URL", config.get("link", "https://monurium.github.io/daily-podcast-generator"))
     output_dir = config.get("output_dir", "dist")
 
-    # 2. Fetch Fresh News & Generate Script via DeepSeek
-    print("\n[Step 1/3] Fetching latest AI & Tech news (last 24 hours)...")
+    # 2. Extract Recent Topics from Manifest for Duplicate Prevention
+    recent_manifest_path = "episodes_manifest.json"
+    recent_topics = []
+    last_episode_script = ""
+    if os.path.exists(recent_manifest_path):
+        try:
+            with open(recent_manifest_path, "r", encoding="utf-8") as f:
+                past_episodes = json.load(f)
+                if past_episodes:
+                    last_episode_script = past_episodes[0].get("script", "")
+                    for ep in past_episodes[:5]:
+                        t_summary = ep.get("todays_topics", "") or ep.get("summary", "")
+                        if t_summary:
+                            recent_topics.append(t_summary)
+        except Exception as e:
+            print(f"⚠️ Could not load recent topics from manifest: {e}")
+
+    # 3. Fetch Fresh News & Generate Script with Duplicate Guard
+    print("\n[Step 1/3] Fetching latest AI & Tech news from multiple RSS feeds...")
     content_gen = ContentGenerator()
-    raw_news = content_gen.fetch_fresh_news(hours_limit=24)
+    
+    # Extract keywords from recent topics to explicitly filter out from RSS
+    exclude_keywords = []
+    for topic in recent_topics:
+        exclude_keywords.extend(re.findall(r'\b[A-Z][a-z]{3,}\b', topic))
 
+    raw_news = content_gen.fetch_fresh_news(hours_limit=24, exclude_keywords=list(set(exclude_keywords)))
     if not raw_news:
-        print("⚠️ No fresh news found in the last 24 hours. Using default feed topics.")
-        raw_news = "Global developments in artificial intelligence, technology, and future innovations."
+        print("⚠️ No fresh news found with strict filter. Using broader feeds.")
+        raw_news = content_gen.fetch_fresh_news(hours_limit=48)
 
+    dialogue_script_data = content_gen.generate_dialogue_script(raw_news, recent_topics=recent_topics)
     script_data = content_gen.generate_script(raw_news)
-    dialogue_script_data = content_gen.generate_dialogue_script(raw_news)
+
+    # 4. Duplicate Similarity Check (BEFORE Audio Synthesis)
+    if last_episode_script:
+        words_new = set(re.findall(r'\b[a-zA-Z]{4,}\b', dialogue_script_data["script"].lower()))
+        words_old = set(re.findall(r'\b[a-zA-Z]{4,}\b', last_episode_script.lower()))
+        if words_new and words_old:
+            similarity = len(words_new.intersection(words_old)) / len(words_new.union(words_old))
+            print(f"🔍 Script novelty check vs yesterday: {((1.0 - similarity) * 100):.1f}% unique (Overlap: {similarity:.2%})")
+            if similarity > 0.45:
+                print("⚠️ High similarity with previous episode detected (>45%). Re-generating with fresh topics...")
+                alt_news = content_gen.fetch_fresh_news(hours_limit=72, exclude_keywords=list(words_old))
+                dialogue_script_data = content_gen.generate_dialogue_script(alt_news, recent_topics=recent_topics)
 
     # Save script texts locally
     os.makedirs("output", exist_ok=True)
@@ -60,6 +95,7 @@ def run_daily_podcast_pipeline(test_mode: bool = False):
         
     print(f"📄 Monologue Script saved to: {script_file_path}")
     print(f"📄 Dialogue Script saved to: {dialogue_file_path}")
+    print(f"💡 Dynamic Episode Hook & Summary:\n   {dialogue_script_data['summary']}")
 
     # 3. Audio Synthesis (Alex: Male & Sarah: Female)
     audio_gen = AudioGenerator()
