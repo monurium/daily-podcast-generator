@@ -23,6 +23,16 @@
       <link>https://monurium.github.io/daily-podcast-generator</link>
     </image>
     <item>
+      <title>Fluent AI Daily - August 20, 2026</title>
+      <description>Daily conversational podcast covering the latest artificial intelligence breakthroughs, tech startups, and software engineering news in clear, articulate English.</description>
+      <pubDate>Thu, 20 Aug 2026 06:24:23 GMT</pubDate>
+      <guid isPermaLink="false">ep_20260820_podcast_d0a075</guid>
+      <itunes:author>Monurium</itunes:author>
+      <itunes:duration>00:09:36</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+      <enclosure url="https://monurium.github.io/daily-podcast-generator/episodes/ep_20260820_podcast_d0a075.mp3" length="4614846" type="audio/mpeg"/>
+    </item>
+    <item>
       <title>Fluent AI Daily - August 19, 2026</title>
       <description>Daily conversational podcast covering the latest artificial intelligence breakthroughs, tech startups, and software engineering news in clear, articulate English.</description>
       <pubDate>Wed, 19 Aug 2026 06:23:34 GMT</pubDate>
