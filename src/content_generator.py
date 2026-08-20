@@ -200,16 +200,20 @@ class ContentGenerator:
         if not gemini_api_key:
             return ""
         try:
-            print("✨ Synthesizing fresh script via Google Gemini 2.5 Flash live fallback...")
             from google import genai
             client = genai.Client(api_key=gemini_api_key)
             combined_prompt = f"{system_prompt}\n\n---\n\n{user_prompt}"
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=combined_prompt
-            )
-            if response and response.text:
-                return response.text.strip()
+            for model_name in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash"]:
+                try:
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=combined_prompt
+                    )
+                    if response and response.text:
+                        print(f"✨ Successfully generated live script via Google Gemini ('{model_name}')!")
+                        return response.text.strip()
+                except Exception as m_err:
+                    continue
         except Exception as gemini_err:
             print(f"⚠️ Gemini live script fallback error: {gemini_err}")
         return ""
