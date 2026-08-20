@@ -31,7 +31,7 @@ class AudioGenerator:
 
     def __init__(self, edge_voice: str = DEFAULT_EDGE_VOICE):
         self.edge_voice = edge_voice
-        self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        self.gemini_api_key = os.getenv("GEMINI_TTS_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
     def _build_audio_metadata(self, output_path: str, duration_seconds: int) -> Dict[str, Any]:
         """Constructs standardized audio metadata response dictionary."""
