@@ -9,7 +9,7 @@ DEFAULT_EDGE_VOICE = "en-US-AndrewNeural"
 GEMINI_TTS_MODELS = ("gemini-2.5-flash-preview-tts", "gemini-2.5-flash-native-audio-latest", "gemini-2.5-flash")
 GEMINI_VOICE_MAP = {"Alex": "Puck", "Sarah": "Aoede"}
 EDGE_VOICE_MAP = {"Alex": "en-US-ChristopherNeural", "Sarah": "en-US-AvaNeural"}
-PACING_SECONDS_PER_REQUEST = 4.0  # Pacing between consolidated turns
+PACING_SECONDS_PER_REQUEST = 6.5  # Guarantees strictly staying below 10 RPM (approx 9.2 RPM max)
 
 def raw_pcm_to_mp3_bytes(pcm_bytes: bytes, sample_rate: int = 24000, num_channels: int = 1, bitrate: int = 128) -> bytes:
     """Encodes raw 24kHz 16-bit PCM audio bytes from Google AI Studio into standard compressed MP3 format using lameenc."""
@@ -21,7 +21,7 @@ def raw_pcm_to_mp3_bytes(pcm_bytes: bytes, sample_rate: int = 24000, num_channel
     encoder.set_quality(2)
     return encoder.encode(pcm_bytes) + encoder.flush()
 
-def generate_silent_pcm_bytes(duration_ms: int = 450, sample_rate: int = 24000) -> bytes:
+def generate_silent_pcm_bytes(duration_ms: int = 400, sample_rate: int = 24000) -> bytes:
     """Generates standard 16-bit mono zero-PCM silence buffer."""
     num_bytes = int(sample_rate * 2 * (duration_ms / 1000.0))
     return b'\x00' * num_bytes
@@ -169,8 +169,8 @@ class AudioGenerator:
                 turn_prompt = f"Speak clearly as a podcast co-host: {clean_text}"
 
                 turn_success = False
-                for model_name in GEMINI_TTS_MODELS:
-                    for attempt in range(2):
+                for attempt in range(3):
+                    for model_name in GEMINI_TTS_MODELS:
                         try:
                             response = client.models.generate_content(
                                 model=model_name,
@@ -188,15 +188,17 @@ class AudioGenerator:
                         except Exception as err:
                             err_str = str(err)
                             if "limit: 0" in err_str or "404" in err_str:
-                                break
+                                continue
                             if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
-                                time.sleep(7.0)
+                                print(f"⏳ Rate limit pause: waiting 8.0s before retrying turn {idx+1}...")
+                                time.sleep(8.0)
                             else:
                                 break
                     if turn_success:
                         break
+                    time.sleep(3.0)
 
-                # Pacing delay between turns to strictly stay below 10 RPM limit
+                # Pacing delay between turns to strictly stay below 10 RPM limit (6.5s delay = 9.2 RPM max)
                 if t_idx < len(valid_turns) - 1:
                     time.sleep(PACING_SECONDS_PER_REQUEST)
 
