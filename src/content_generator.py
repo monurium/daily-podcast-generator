@@ -155,7 +155,8 @@ class ContentGenerator:
 
         user_prompt = (
             f"Here is today's raw AI & Tech news context:\n\n{raw_news_context}\n\n"
-            "Generate a 2-host daily AI & Tech podcast conversation script (Alex & Sarah) covering today's top stories in interactive detail."
+            "CRITICAL LENGTH MANDATE: Write a full, in-depth 1300 to 1450 words conversational dialogue podcast script (Alex & Sarah). "
+            "Cover 5-6 major stories in rich, engaging detail with thorough analysis and explanations so the audio duration reaches exactly 8 to 10 minutes."
         )
 
         full_content = ""
@@ -196,21 +197,21 @@ class ContentGenerator:
 
     def _generate_gemini_live_script(self, system_prompt: str, user_prompt: str) -> str:
         """Live fallback script generation via Google Gemini API."""
-        gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        gemini_api_key = os.getenv("GEMINI_TTS_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if not gemini_api_key:
             return ""
         try:
             from google import genai
             client = genai.Client(api_key=gemini_api_key)
             combined_prompt = f"{system_prompt}\n\n---\n\n{user_prompt}"
-            for model_name in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash"]:
+            for model_name in ["gemini-3.6-flash", "gemini-flash-latest", "gemini-2.5-flash-lite"]:
                 try:
                     response = client.models.generate_content(
                         model=model_name,
                         contents=combined_prompt
                     )
                     if response and response.text:
-                        print(f"✨ Successfully generated live script via Google Gemini ('{model_name}')!")
+                        print(f"✨ Successfully generated 1300+ word live script via Google Gemini ('{model_name}')!")
                         return response.text.strip()
                 except Exception as m_err:
                     continue
@@ -244,12 +245,22 @@ class ContentGenerator:
                 )
                 desc = res.choices[0].message.content.strip()
                 if desc and len(desc) > 30:
-                    return {
-                        "summary": desc,
-                        "todays_topics": desc
-                    }
+                    return {"summary": desc, "todays_topics": desc}
         except Exception:
             pass
+
+        # Try Gemini fallback for description
+        gemini_api_key = os.getenv("GEMINI_TTS_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        if gemini_api_key:
+            try:
+                from google import genai
+                client = genai.Client(api_key=gemini_api_key)
+                g_res = client.models.generate_content(model="gemini-3.6-flash", contents=meta_prompt)
+                if g_res and g_res.text and len(g_res.text.strip()) > 30:
+                    clean_desc = g_res.text.strip()
+                    return {"summary": clean_desc, "todays_topics": clean_desc}
+            except Exception:
+                pass
 
         # Smart rule-based extraction fallback
         return {
