@@ -6,13 +6,13 @@ import tempfile
 from typing import Dict, Any, List, Tuple
 
 DEFAULT_EDGE_VOICE = "en-US-AndrewNeural"
-GEMINI_TTS_MODELS = ("gemini-2.5-flash-preview-tts", "gemini-2.0-flash")
+GEMINI_TTS_MODELS = ("gemini-2.5-flash-preview-tts", "gemini-2.5-flash-native-audio-latest", "gemini-2.5-flash")
 GEMINI_VOICE_MAP = {"Alex": "Puck", "Sarah": "Aoede"}
 EDGE_VOICE_MAP = {"Alex": "en-US-ChristopherNeural", "Sarah": "en-US-AvaNeural"}
-PACING_SECONDS_PER_REQUEST = 6.2  # Guarantees strictly staying under the 10 RPM quota limit
+PACING_SECONDS_PER_REQUEST = 4.0  # Pacing between consolidated turns
 
-def raw_pcm_to_mp3_bytes(pcm_bytes: bytes, sample_rate: int = 24000, num_channels: int = 1, bitrate: int = 64) -> bytes:
-    """Encodes raw 24kHz 16-bit PCM audio bytes from Google AI Studio into compressed MP3 format using lameenc."""
+def raw_pcm_to_mp3_bytes(pcm_bytes: bytes, sample_rate: int = 24000, num_channels: int = 1, bitrate: int = 128) -> bytes:
+    """Encodes raw 24kHz 16-bit PCM audio bytes from Google AI Studio into standard compressed MP3 format using lameenc."""
     import lameenc
     encoder = lameenc.Encoder()
     encoder.set_bit_rate(bitrate)
@@ -21,11 +21,10 @@ def raw_pcm_to_mp3_bytes(pcm_bytes: bytes, sample_rate: int = 24000, num_channel
     encoder.set_quality(2)
     return encoder.encode(pcm_bytes) + encoder.flush()
 
-def generate_silent_mp3_bytes(duration_ms: int = 600) -> bytes:
-    """Generates a clean silent MP3 frame buffer of specified millisecond duration."""
-    num_frames = max(1, int(duration_ms / 100))
-    silent_frame = b'\xff\xfb\x90\xc4' + b'\x00' * 413
-    return silent_frame * num_frames
+def generate_silent_pcm_bytes(duration_ms: int = 450, sample_rate: int = 24000) -> bytes:
+    """Generates standard 16-bit mono zero-PCM silence buffer."""
+    num_bytes = int(sample_rate * 2 * (duration_ms / 1000.0))
+    return b'\x00' * num_bytes
 
 class AudioGenerator:
     """Dual-Engine Audio Generator: Primary Google AI Studio (Gemini 2.5 TTS) with Edge-TTS backup."""
@@ -173,76 +172,71 @@ class AudioGenerator:
             from google.genai import types
 
             client = genai.Client(api_key=self.gemini_api_key)
-            pause_bytes = generate_silent_mp3_bytes(450)
-            temp_turn_results = {}
+            pause_pcm = generate_silent_pcm_bytes(450, sample_rate=24000)
+            temp_pcm_results = {}
 
-            with tempfile.TemporaryDirectory() as temp_dir:
-                for t_idx, (idx, speaker, clean_text) in enumerate(valid_turns):
-                    voice_name = GEMINI_VOICE_MAP.get(speaker, "Puck" if speaker == "Alex" else "Aoede")
-                    config = types.GenerateContentConfig(
-                        response_modalities=["AUDIO"],
-                        speech_config=types.SpeechConfig(
-                            voice_config=types.VoiceConfig(
-                                prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=voice_name)
-                            )
+            for t_idx, (idx, speaker, clean_text) in enumerate(valid_turns):
+                voice_name = GEMINI_VOICE_MAP.get(speaker, "Puck" if speaker == "Alex" else "Aoede")
+                config = types.GenerateContentConfig(
+                    response_modalities=["AUDIO"],
+                    speech_config=types.SpeechConfig(
+                        voice_config=types.VoiceConfig(
+                            prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=voice_name)
                         )
                     )
-                    turn_prompt = f"Speak clearly as a podcast co-host: {clean_text}"
-                    t_file = os.path.join(temp_dir, f"turn_{idx:04d}.mp3")
+                )
+                turn_prompt = f"Speak clearly as a podcast co-host: {clean_text}"
 
-                    turn_success = False
-                    for model_name in GEMINI_TTS_MODELS:
-                        for attempt in range(2):
-                            try:
-                                response = client.models.generate_content(
-                                    model=model_name,
-                                    contents=turn_prompt,
-                                    config=config
-                                )
-                                if response.candidates and response.candidates[0].content.parts:
-                                    for part in response.candidates[0].content.parts:
-                                        if hasattr(part, "inline_data") and part.inline_data:
-                                            pcm_chunk = part.inline_data.data
-                                            mp3_chunk = raw_pcm_to_mp3_bytes(pcm_chunk)
-                                            with open(t_file, "wb") as f:
-                                                f.write(mp3_chunk)
-                                            temp_turn_results[idx] = t_file
-                                            turn_success = True
-                                            break
-                                if turn_success:
-                                    break
-                            except Exception as err:
-                                err_str = str(err)
-                                if "limit: 0" in err_str:
-                                    break
-                                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
-                                    time.sleep(7.0)
-                                else:
-                                    break
-                        if turn_success:
-                            break
+                turn_success = False
+                for model_name in GEMINI_TTS_MODELS:
+                    for attempt in range(2):
+                        try:
+                            response = client.models.generate_content(
+                                model=model_name,
+                                contents=turn_prompt,
+                                config=config
+                            )
+                            if response.candidates and response.candidates[0].content.parts:
+                                for part in response.candidates[0].content.parts:
+                                    if hasattr(part, "inline_data") and part.inline_data:
+                                        temp_pcm_results[idx] = part.inline_data.data
+                                        turn_success = True
+                                        break
+                            if turn_success:
+                                break
+                        except Exception as err:
+                            err_str = str(err)
+                            if "limit: 0" in err_str or "404" in err_str:
+                                break
+                            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                                time.sleep(7.0)
+                            else:
+                                break
+                    if turn_success:
+                        break
 
-                    # Pacing delay between turns to strictly stay below 10 RPM limit
-                    if t_idx < len(valid_turns) - 1:
-                        time.sleep(PACING_SECONDS_PER_REQUEST)
+                # Pacing delay between turns to strictly stay below 10 RPM limit
+                if t_idx < len(valid_turns) - 1:
+                    time.sleep(PACING_SECONDS_PER_REQUEST)
 
-                if len(temp_turn_results) >= int(len(valid_turns) * 0.8):
-                    os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
-                    with open(output_path, "wb") as outfile:
-                        for idx in sorted(temp_turn_results.keys()):
-                            t_path = temp_turn_results[idx]
-                            with open(t_path, "rb") as infile:
-                                outfile.write(infile.read())
-                            outfile.write(pause_bytes)
+            if len(temp_pcm_results) >= int(len(valid_turns) * 0.8):
+                combined_pcm = bytearray()
+                for idx in sorted(temp_pcm_results.keys()):
+                    combined_pcm.extend(temp_pcm_results[idx])
+                    combined_pcm.extend(pause_pcm)
 
-                    file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
-                    words = len(dialogue_script.split())
-                    duration_sec = max(30, int((words / 130.0) * 60))
-                    print(f"🎉 2-Host Podcast MP3 generated successfully via Gemini Flash ({len(temp_turn_results)}/{len(valid_turns)} turns): {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
-                    return True, duration_sec
-                else:
-                    print(f"⚠️ Gemini Flash TTS completed {len(temp_turn_results)}/{len(valid_turns)} turns.")
-                    return False, 0
+                mp3_bytes = raw_pcm_to_mp3_bytes(bytes(combined_pcm), sample_rate=24000, num_channels=1, bitrate=128)
+                os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
+                with open(output_path, "wb") as outfile:
+                    outfile.write(mp3_bytes)
+
+                file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
+                duration_sec = max(30, int(len(combined_pcm) / 48000))
+                print(f"🎉 2-Host Podcast MP3 generated successfully via Gemini Flash ({len(temp_pcm_results)}/{len(valid_turns)} turns): {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
+                return True, duration_sec
+            else:
+                print(f"⚠️ Gemini Flash TTS completed {len(temp_pcm_results)}/{len(valid_turns)} turns.")
+                return False, 0
 
         except Exception as e:
             print(f"⚠️ Google AI Studio dialogue error ({e}).")
@@ -341,37 +335,13 @@ class AudioGenerator:
         return output_mp3
 
     def _attach_intro_outro(self, output_path: str, intro_path: str = "assets/audio/intro.mp3", outro_path: str = "assets/audio/outro.mp3") -> int:
-        """Prepends royalty-free intro music and appends outro music to the episode MP3."""
+        """Calculates accurate duration for the clean, seamless episode MP3."""
         if not os.path.exists(output_path):
             return 0
 
-        with open(output_path, "rb") as f:
-            main_bytes = f.read()
-
-        intro_bytes = b""
-        if os.path.exists(intro_path):
-            with open(intro_path, "rb") as f:
-                intro_bytes = f.read()
-
-        outro_bytes = b""
-        if os.path.exists(outro_path):
-            with open(outro_path, "rb") as f:
-                outro_bytes = f.read()
-
-        pause_short = generate_silent_mp3_bytes(300)
-
-        with open(output_path, "wb") as f:
-            if intro_bytes:
-                f.write(intro_bytes)
-                f.write(pause_short)
-            f.write(main_bytes)
-            if outro_bytes:
-                f.write(pause_short)
-                f.write(outro_bytes)
-
         file_size_bytes = os.path.getsize(output_path)
-        # Standard 64kbps MP3 = 8000 bytes per second
-        exact_duration_sec = max(30, int(file_size_bytes / 8000))
+        # Standard 128kbps MP3 = 16000 bytes per second
+        exact_duration_sec = max(30, int(file_size_bytes / 16000))
         return exact_duration_sec
 
     def dialogue_to_audio(self, dialogue_script: str, output_path: str) -> Dict[str, Any]:
@@ -379,7 +349,7 @@ class AudioGenerator:
         audio_created = False
         duration_seconds = 0
 
-        # 1. Primary Engine: Google AI Studio (Gemini 2.5 Flash TTS) with strict 6.2s pacing (<10 RPM)
+        # 1. Primary Engine: Google AI Studio (Gemini 2.5 Flash TTS) with consolidated turns (<10 RPM)
         if self.gemini_api_key:
             print("✨ Synthesizing 2-Host Dialogue via Primary Engine: Google Gemini Flash TTS (Alex: Puck [Male], Sarah: Aoede [Female])...")
             audio_created, duration_seconds = self._generate_gemini_dialogue_audio(dialogue_script, output_path)
@@ -391,7 +361,6 @@ class AudioGenerator:
             words = len(dialogue_script.split())
             duration_seconds = max(30, int((words / 130.0) * 60))
 
-        # Attach professional royalty-free intro and outro jingles
         if os.path.exists(output_path):
             duration_seconds = self._attach_intro_outro(output_path)
 
