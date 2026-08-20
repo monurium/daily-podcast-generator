@@ -149,11 +149,13 @@ def run_daily_podcast_pipeline(test_mode: bool = False):
             "id": dialogue_episode_id,
             "title": dialogue_script_data["title"],
             "summary": dialogue_script_data["summary"],
+            "todays_topics": dialogue_script_data.get("todays_topics", dialogue_script_data["summary"]),
             "script": dialogue_script_data["script"],
             "bulletin_summary": dialogue_script_data.get("bulletin_summary", dialogue_script_data["summary"]),
             "pub_date": pub_date,
             "file_size": dialogue_audio_meta["file_size"],
             "duration_formatted": dialogue_audio_meta["duration_formatted"],
+            "duration_seconds": dialogue_audio_meta.get("duration_seconds", 0),
             "chapters": dialogue_script_data.get("chapters", []),
             "vocabulary": dialogue_script_data.get("vocabulary", []),
             "sentences": dialogue_script_data.get("sentences", [])
