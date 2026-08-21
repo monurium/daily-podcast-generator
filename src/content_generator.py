@@ -197,7 +197,7 @@ class ContentGenerator:
 
     def _generate_gemini_live_script(self, system_prompt: str, user_prompt: str) -> str:
         """Live fallback script generation via Google Gemini API."""
-        gemini_api_key = os.getenv("GEMINI_TTS_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_TTS_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if not gemini_api_key:
             return ""
         try:
@@ -250,7 +250,7 @@ class ContentGenerator:
             pass
 
         # Try Gemini fallback for description
-        gemini_api_key = os.getenv("GEMINI_TTS_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_TTS_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if gemini_api_key:
             try:
                 from google import genai

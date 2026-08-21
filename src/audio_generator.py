@@ -9,7 +9,7 @@ DEFAULT_EDGE_VOICE = "en-US-AndrewNeural"
 GEMINI_TTS_MODELS = ("gemini-2.5-flash-preview-tts", "gemini-2.5-flash-native-audio-latest", "gemini-2.5-flash")
 GEMINI_VOICE_MAP = {"Alex": "Puck", "Sarah": "Aoede"}
 EDGE_VOICE_MAP = {"Alex": "en-US-ChristopherNeural", "Sarah": "en-US-AvaNeural"}
-PACING_SECONDS_PER_REQUEST = 6.5  # Guarantees strictly staying below 10 RPM (approx 9.2 RPM max)
+PACING_SECONDS_PER_REQUEST = 1.5  # Fast paid-tier pacing (high RPM support)
 
 def raw_pcm_to_mp3_bytes(pcm_bytes: bytes, sample_rate: int = 24000, num_channels: int = 1, bitrate: int = 128) -> bytes:
     """Encodes raw 24kHz 16-bit PCM audio bytes from Google AI Studio into standard compressed MP3 format using lameenc."""
@@ -37,7 +37,7 @@ class AudioGenerator:
 
     def __init__(self, edge_voice: str = DEFAULT_EDGE_VOICE):
         self.edge_voice = edge_voice
-        self.gemini_api_key = os.getenv("GEMINI_TTS_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_TTS_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
     def _build_audio_metadata(self, output_path: str, duration_seconds: int) -> Dict[str, Any]:
         """Constructs standardized audio metadata response dictionary."""
