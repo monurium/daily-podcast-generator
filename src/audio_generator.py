@@ -1,9 +1,21 @@
 import os
+import sys
 import re
 import asyncio
 import time
 import tempfile
 from typing import Dict, Any, List, Tuple
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+if hasattr(sys.stderr, "reconfigure"):
+    try:
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 DEFAULT_EDGE_VOICE = "en-US-AndrewNeural"
 GEMINI_TTS_MODELS = ("gemini-2.5-flash-preview-tts", "gemini-2.5-flash-native-audio-latest", "gemini-2.5-flash")
@@ -188,6 +200,7 @@ class AudioGenerator:
                                     if hasattr(part, "inline_data") and part.inline_data:
                                         temp_pcm_results[idx] = part.inline_data.data
                                         turn_success = True
+                                        print(f"🎙️ [{t_idx+1}/{len(valid_turns)}] Synthesized turn for {speaker} ({len(clean_text.split())} words)", flush=True)
                                         break
                             if turn_success:
                                 break
@@ -196,7 +209,7 @@ class AudioGenerator:
                             if "limit: 0" in err_str or "404" in err_str:
                                 continue
                             if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
-                                print(f"⏳ Rate limit pause: waiting 8.0s before retrying turn {idx+1}...")
+                                print(f"⏳ Rate limit pause: waiting 8.0s before retrying turn {idx+1}...", flush=True)
                                 time.sleep(8.0)
                             else:
                                 break
@@ -204,15 +217,41 @@ class AudioGenerator:
                         break
                     time.sleep(3.0)
 
-                # Pacing delay between turns to strictly stay below 10 RPM limit (6.5s delay = 9.2 RPM max)
+                # Pacing delay between turns
                 if t_idx < len(valid_turns) - 1:
                     time.sleep(PACING_SECONDS_PER_REQUEST)
 
+            # Decode intro and outro jingles into 24kHz 16-bit PCM if available
+            intro_pcm = b""
+            outro_pcm = b""
+            try:
+                import miniaudio
+                if os.path.exists("assets/audio/intro.mp3"):
+                    intro_info = miniaudio.decode_file("assets/audio/intro.mp3", nchannels=1, sample_rate=24000)
+                    intro_pcm = bytes(intro_info.samples)
+                if os.path.exists("assets/audio/outro.mp3"):
+                    outro_info = miniaudio.decode_file("assets/audio/outro.mp3", nchannels=1, sample_rate=24000)
+                    outro_pcm = bytes(outro_info.samples)
+            except Exception as jingle_err:
+                print(f"⚠️ Jingle decode note: {jingle_err}")
+
             if len(temp_pcm_results) >= int(len(valid_turns) * 0.8):
                 combined_pcm = bytearray()
+
+                # 1. Attach Professional Intro Jingle
+                if intro_pcm:
+                    combined_pcm.extend(intro_pcm)
+                    combined_pcm.extend(generate_silent_pcm_bytes(500, sample_rate=24000))
+
+                # 2. Attach Dialogue Turns
                 for idx in sorted(temp_pcm_results.keys()):
                     combined_pcm.extend(temp_pcm_results[idx])
                     combined_pcm.extend(pause_pcm)
+
+                # 3. Attach Professional Outro Jingle
+                if outro_pcm:
+                    combined_pcm.extend(generate_silent_pcm_bytes(500, sample_rate=24000))
+                    combined_pcm.extend(outro_pcm)
 
                 mp3_bytes = raw_pcm_to_mp3_bytes(bytes(combined_pcm), sample_rate=24000, num_channels=1, bitrate=128)
                 os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
@@ -221,7 +260,7 @@ class AudioGenerator:
 
                 file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
                 duration_sec = max(30, int(len(combined_pcm) / 48000))
-                print(f"🎉 2-Host Podcast MP3 generated successfully via Gemini Flash ({len(temp_pcm_results)}/{len(valid_turns)} turns): {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
+                print(f"🎉 2-Host Podcast MP3 generated successfully with Intro & Outro ({len(temp_pcm_results)}/{len(valid_turns)} turns): {output_path} ({file_size_mb:.2f} MB, {duration_sec // 60}m {duration_sec % 60}s)")
                 return True, duration_sec
             else:
                 print(f"⚠️ Gemini Flash TTS completed {len(temp_pcm_results)}/{len(valid_turns)} turns.")

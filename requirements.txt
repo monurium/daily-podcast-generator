@@ -4,4 +4,5 @@ google-genai>=0.1.1
 edge-tts>=6.1.9
 python-dotenv>=1.0.1
 lameenc>=1.8.0
+miniaudio>=1.71
 pillow>=10.0.0
