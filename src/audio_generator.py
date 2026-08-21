@@ -26,6 +26,12 @@ def generate_silent_pcm_bytes(duration_ms: int = 400, sample_rate: int = 24000) 
     num_bytes = int(sample_rate * 2 * (duration_ms / 1000.0))
     return b'\x00' * num_bytes
 
+def generate_silent_mp3_bytes(duration_ms: int = 500) -> bytes:
+    """Generates standard silent MP3 frame buffer for Edge-TTS fallback."""
+    num_frames = max(1, int(duration_ms / 100))
+    silent_frame = b'\xff\xfb\x90\xc4' + b'\x00' * 413
+    return silent_frame * num_frames
+
 class AudioGenerator:
     """Dual-Engine Audio Generator: Primary Google AI Studio (Gemini 2.5 TTS) with Edge-TTS backup."""
 
