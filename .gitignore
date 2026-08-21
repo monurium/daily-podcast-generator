@@ -24,9 +24,8 @@ wheels/
 venv/
 ENV/
 
-# Output directories & Media (dist is committed for Apple Podcasts RSS hosting)
+# Output directories & Media (episodes and dist are committed for Apple Podcasts & GitHub Pages)
 output/
-episodes/
 audio_cache/
 
 # IDEs
