@@ -9,7 +9,7 @@ DEFAULT_EDGE_VOICE = "en-US-AndrewNeural"
 GEMINI_TTS_MODELS = ("gemini-2.5-flash-preview-tts", "gemini-2.5-flash-native-audio-latest", "gemini-2.5-flash")
 GEMINI_VOICE_MAP = {"Alex": "Puck", "Sarah": "Aoede"}
 EDGE_VOICE_MAP = {"Alex": "en-US-ChristopherNeural", "Sarah": "en-US-AvaNeural"}
-PACING_SECONDS_PER_REQUEST = 1.5  # Fast paid-tier pacing (high RPM support)
+PACING_SECONDS_PER_REQUEST = 6.5  # Safe 6.5s pacing between turns
 
 def raw_pcm_to_mp3_bytes(pcm_bytes: bytes, sample_rate: int = 24000, num_channels: int = 1, bitrate: int = 128) -> bytes:
     """Encodes raw 24kHz 16-bit PCM audio bytes from Google AI Studio into standard compressed MP3 format using lameenc."""
