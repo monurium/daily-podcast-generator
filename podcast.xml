@@ -23,9 +23,19 @@
       <link>https://monurium.github.io/daily-podcast-generator</link>
     </image>
     <item>
-      <title>Fluent AI Daily - September 01, 2026</title>
+      <title>Fluent AI Daily - September 01, 2026: AI Innovations &amp; Agents</title>
+      <description>Alex and Sarah unpack the latest breakthroughs in artificial intelligence, autonomous agents, and enterprise software in clear, articulate English.</description>
+      <pubDate>Tue, 01 Sep 2026 11:20:26 GMT</pubDate>
+      <guid isPermaLink="false">ep_20260901_podcast_9ff2ab</guid>
+      <itunes:author>Monurium</itunes:author>
+      <itunes:duration>00:08:18</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+      <enclosure url="https://monurium.github.io/daily-podcast-generator/episodes/ep_20260901_podcast_9ff2ab.mp3" length="7973376" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Fluent AI Daily - August 23, 2026</title>
       <description>What happens when your professor is a digital clone, and why is OpenAI suddenly asking for stricter AI rules? Today, we unpack Harvard’s new AI avatar coaches for executive students, OpenAI’s surprising support for California’s safety bill, and a study exposing frontier labs’ missing plans for containing rogue AI models.</description>
-      <pubDate>Tue, 01 Sep 2026 11:13:27 GMT</pubDate>
+      <pubDate>Sun, 23 Aug 2026 06:21:37 GMT</pubDate>
       <guid isPermaLink="false">ep_20260823_podcast_2d5192</guid>
       <itunes:author>Monurium</itunes:author>
       <itunes:duration>00:08:18</itunes:duration>
